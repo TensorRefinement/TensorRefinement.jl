@@ -1,5 +1,5 @@
 __precompile__()
-module TTpy
+module TTPy
 
 using PyCall
 using ..Aux, ..TensorTrain
