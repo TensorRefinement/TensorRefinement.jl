@@ -1,7 +1,7 @@
 module TensorTrain
 
 using LinearAlgebra, Random
-using ..Aux
+using ..Auxiliary
 
 include("TensorTrainFactor.jl")
 include("TensorTrainFactorization.jl")

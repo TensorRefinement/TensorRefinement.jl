@@ -1,4 +1,4 @@
-module Aux
+module Auxiliary
 
 using LinearAlgebra
 

@@ -2,8 +2,8 @@ module TensorRefinement
 
 using Reexport
 
-include("Aux.jl")
-@reexport using .Aux
+include("Auxiliary.jl")
+@reexport using .Auxiliary
 
 include("TensorTrain.jl")
 @reexport using .TensorTrain

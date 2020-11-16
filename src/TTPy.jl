@@ -2,7 +2,7 @@ __precompile__()
 module TTPy
 
 using PyCall
-using ..Aux, ..TensorTrain
+using ..Auxiliary, ..TensorTrain
 
 import ..TensorTrain.dec
 

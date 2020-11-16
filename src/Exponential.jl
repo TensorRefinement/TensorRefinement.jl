@@ -1,6 +1,6 @@
 module Exponential
 
-using ..Aux, ..TensorTrain
+using ..Auxiliary, ..TensorTrain
 
 export trigevalmask, trigeval, trigrefmask, trigrefmask2, trigdiffmask, trigdiff, trigdec, trigdeceval!
 export cosfactor, cosdec
