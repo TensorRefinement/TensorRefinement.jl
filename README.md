@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/TensorRefinement/TensorRefinement.jl/workflows/CI/badge.svg)](https://github.com/TensorRefinement/TensorRefinement.jl/actions)
 [![Coverage](https://codecov.io/gh/TensorRefinement/TensorRefinement.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/TensorRefinement/TensorRefinement.jl)
 
-This is a Julia package for computations with functions exploiting low-rank multilevel structure
+This is a Julia package for low-rank computations with functions.
 
 ## Citing
 
