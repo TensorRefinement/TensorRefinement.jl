@@ -1,6 +1,3 @@
-using TensorRefinement
-using Test
+using SafeTestsets
 
-@testset "TensorRefinement.jl" begin
-    # Write your tests here.
-end
+@safetestset "TensorTrainFactor tests" begin include("TensorTrainFactor.jl") end
