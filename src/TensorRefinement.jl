@@ -8,8 +8,8 @@ include("Auxiliary.jl")
 include("TensorTrain.jl")
 @reexport using .TensorTrain
 
-# include("TTPy.jl")
-# @reexport using .TTPy
+include("TTPy.jl")
+@reexport using .TTPy
 
 include("Exponential.jl")
 @reexport using .Exponential

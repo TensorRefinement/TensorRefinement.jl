@@ -1,12 +1,21 @@
 __precompile__()
 module TTPy
 
-using PyCall
+using Conda, PyCall
 using ..Auxiliary, ..TensorTrain
 
 import ..TensorTrain.dec
 
 export pydec, dec, pyamen
+
+try
+	pyimport("tt")
+	pyimport("tt.amen")
+catch
+	Conda.pip_interop(true)
+	Conda.pip("install", "ttpy")
+	Conda.pip_interop(false)
+end
 
 const tt = PyNULL()
 const ttamen = PyNULL()
