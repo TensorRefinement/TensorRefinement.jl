@@ -2,16 +2,16 @@ module TensorRefinement
 
 using Reexport
 
-include("submodules/Aux.jl")
+include(joinpath("submodules", "Aux.jl"))
 @reexport using .Aux
 
-include("submodules/TensorTrain.jl")
+include(joinpath("submodules", "TensorTrain.jl"))
 @reexport using .TensorTrain
 
-# include("submodules/TTPy.jl")
+# include(joinpath("submodules", "TTPy.jl"))
 # @reexport using .TTPy
 
-include("submodules/Exponential.jl")
+include(joinpath("submodules", "Exponential.jl"))
 @reexport using .Exponential
 
 
