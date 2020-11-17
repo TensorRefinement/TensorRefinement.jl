@@ -13,6 +13,8 @@ const Float3 = Union{Float64,Vector{Float64},Vector{Vector{Float64}}}
 const Int2 = Union{Int,Vector{Int}}
 const Int3 = Union{Int,Vector{Int},Vector{Vector{Int}}}
 
+compfloateps(::Type{S}) where {T<:AbstractFloat,S<:FloatRC{T}} = eps(T)
+
 function indvec(σ::Indices; min::Int=1, max::Int=0)
 	isa(σ, Colon) && return collect(min:max)
 	isa(σ, Vector{Int}) && return copy(σ)
@@ -50,14 +52,6 @@ function threshold(δ::Vector{T}, ε::T, ρ::Int) where {T<:Real}
 	return ε, ρ
 end
 
-function compfloateps(::Type{T}) where T<:FloatRC
-	if !isconcretetype(T)
-		throw(ArgumentError("only concrete types are accepted"))
-	end
-	(T <: AbstractFloat) && return eps(T)
-	(T <: Complex{S} where S<:AbstractFloat) && return eps(T.parameters[1])
-end
-
 function qraddcols(Q::Matrix{T}, R::Matrix{T}, U::Matrix{T}) where T<:FloatRC
 	p,r = size(Q); rR,q = size(R); pU,s = size(U)
 	if rR ≠ r
@@ -74,7 +68,6 @@ function qraddcols(Q::Matrix{T}, R::Matrix{T}, U::Matrix{T}) where T<:FloatRC
 	R = [R Diagonal(d)*Z[1:r,r+1:r+s]; zeros(T, ρ-r, q) Z[r+1:ρ,r+1:r+s]]
 	return Q,R
 end
-
 
 function lqaddrows(L::Matrix{T}, Q::Matrix{T}, U::Matrix{T}) where T<:FloatRC
 	p,rr = size(L); r,q = size(Q); s,qq = size(U)
