@@ -7,7 +7,7 @@ Random.seed!(1365)
 	d = length(n)
 	L = length(r)-1
 	@testset "Type: $S" for T ∈ (Float64, Float32), S ∈ (T, Complex{T})
-		tol = 8*eps(T)
+		tol = 200*eps(T)
 		U = decrand(n, r); Uf = factor(U); nrm = norm(Uf)
 		@testset "pivot=$pivot, path=$path" for pivot ∈ (false, true), path ∈ ("forward", "backward")
 			V = decqr!(deepcopy(U); pivot=pivot, path=path)

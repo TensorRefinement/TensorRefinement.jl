@@ -6,7 +6,7 @@ Random.seed!(1365)
 	n = [4,5,6,7]; p,q = 7,19
 	d = length(n)
 	@testset "Type: $S" for T ∈ (Float64, Float32), S ∈ (T, Complex{T})
-		tol = 4*eps(T)
+		tol = 100*eps(T)
 		U = rand(S, p, n..., q); nrm = norm(U)
 		@testset "pivot=$pivot, rev=$rev" for pivot ∈ (false, true), rev ∈ (false, true)
 			Q,R = factorqr!(copy(U), Val(pivot); rev=rev)
