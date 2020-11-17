@@ -160,7 +160,7 @@ function dec(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; fir
 	if rvec && (rlen < 2)
 		throw(ArgumentError("when the rank parameter is specified as a vector, it should contain at least two entries"))
 	end
-	if rvec && nmat > 1 && rlen ≠ nlen+1
+	if rvec && nmat && rlen ≠ nlen+1
 		throw(ArgumentError("when the size parameter is specified as a matrix with L columns and the rank parameter is specified as a vector, the latter should contain L+1 entries"))
 	end
 	if first < 0
@@ -800,7 +800,7 @@ function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="") wh
 	return W
 end
 
-decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="") where {T<:FloatRC,N,P<:Bool} = decqr!(W, :; pivot=pivot, path=path)
+decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="") where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path)
 
 
 function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, rank::Int2=0, major::String="last") where {T<:FloatRC,N}
