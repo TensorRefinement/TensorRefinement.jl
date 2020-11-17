@@ -7,7 +7,7 @@ Random.seed!(1365)
 	d = length(n)
 	L = length(r)-1
 	@testset "Type: $S" for T ∈ (Float64, Float32), S ∈ (T, Complex{T})
-		tol = 200*eps(T)
+		tol = 100*eps(T)
 		U = decrand(n, r); Uf = factor(U); nrm = norm(Uf)
 		@testset "pivot=$pivot, path=$path" for pivot ∈ (false, true), path ∈ ("forward", "backward")
 			V = decqr!(deepcopy(U); pivot=pivot, path=path)
@@ -18,7 +18,7 @@ Random.seed!(1365)
 			for ℓ ∈ 1:L
 				Q = reshape(V[ℓ], p[ℓ]*prod(n), p[ℓ+1])
 				E = Q'*Q-I
-				@test norm(E)/sqrt(p[ℓ+1]) ≈ 0 atol=tol
+				@test norm(E)/p[ℓ+1]^2 ≈ 0 atol=tol
 			end
 		end
     end

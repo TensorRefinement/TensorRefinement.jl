@@ -32,7 +32,7 @@ Random.seed!(1365)
 			else
 				Q = reshape(Q, p*prod(n), r)
 				E = Q'*Q-I
-				@test norm(E)/sqrt(r) ≈ 0 atol=tol
+				@test norm(E)/r^2 ≈ 0 atol=tol
 			end
 		end
     end
