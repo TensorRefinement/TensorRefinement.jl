@@ -1,45 +1,39 @@
-using LinearAlgebra, TensorRefinement
-using Test
+using Random, LinearAlgebra, TensorRefinement, Test
 
-function factorqr!_test(::Type{T}, p::Int, q::Int, n::Vector{Int}, rtol::Real) where {T<:FloatRC{<:AbstractFloat}}
-	U = rand(T, p, n..., q)
-	atol = rtol*norm(U)
-	@testset "without pivoting" begin
-		Q,R = factorqr!(copy(U)); V = factorcontract(Q, R)
-		@test norm(V-U) ≈ 0 atol=atol
-		Q,R = factorqr!(copy(U); rev=false); V = factorcontract(Q, R)
-		@test norm(V-U) ≈ 0 atol=atol
-		Q,R = factorqr!(copy(U); rev=true); V = factorcontract(R, Q)
-		@test norm(V-U) ≈ 0 atol=atol
-	end
-	@testset "without pivoting, specified explicitly" begin
-		Q,R = factorqr!(copy(U), Val(false)); V = factorcontract(Q, R)
-		@test norm(V-U) ≈ 0 atol=atol
-		Q,R = factorqr!(copy(U), Val(false); rev=false); V = factorcontract(Q, R)
-		@test norm(V-U) ≈ 0 atol=atol
-		Q,R = factorqr!(copy(U), Val(false); rev=true); V = factorcontract(R, Q)
-		@test norm(V-U) ≈ 0 atol=atol
-	end
-	@testset "with pivoting, specified explicitly" begin
-		Q,R = factorqr!(copy(U), Val(true)); V = factorcontract(Q, R)
-		@test norm(V-U) ≈ 0 atol=atol
-		Q,R = factorqr!(copy(U), Val(true); rev=false); V = factorcontract(Q, R)
-		@test norm(V-U) ≈ 0 atol=atol
-		Q,R = factorqr!(copy(U), Val(true); rev=true); V = factorcontract(R, Q)
-		@test norm(V-U) ≈ 0 atol=atol
-	end
-end
+Random.seed!(1365)
 
-@testset "Factor orthogonalization test" begin
-	p,q = 7,19
-	n = [4,5,6,7]
-	@testset "Underlying type: $T" for T ∈ [Float64, Float32]
-		rtol = sqrt(eps(T))
-		@testset "$T" for i ∈ 1:3
-			factorqr!_test(T, p, q, n, rtol)
-		end
-		@testset "Complex{$T}" for i ∈ 1:3
-			factorqr!_test(Complex{T}, p, q, n, rtol)
+@testset "Factor orthogonalization" begin
+	n = [4,5,6,7]; p,q = 7,19
+	d = length(n)
+	@testset "Type: $S" for T ∈ (Float64, Float32), S ∈ (T, Complex{T})
+		tol = 4*eps(T)
+		U = rand(S, p, n..., q); nrm = norm(U)
+		@testset "pivot=$pivot, rev=$rev" for pivot ∈ (false, true), rev ∈ (false, true)
+			Q,R = factorqr!(copy(U), Val(pivot); rev=rev)
+			r,s = factorranks(Q)
+			rev || (r = s)
+			if rev
+				@test factorranks(R) == (p,r)
+				@test factorranks(Q) == (r,q)
+				@test factorsize(R) == ones(Int, d)
+				@test factorsize(Q) == n
+			else
+				@test factorranks(Q) == (p,r)
+				@test factorranks(R) == (r,q)
+				@test factorsize(R) == ones(Int, d)
+				@test factorsize(Q) == n
+			end
+			V = factorcontract(Q, R; rev=rev)
+			@test norm(V-U)/nrm ≈ 0 atol=tol
+			if rev
+				Q = reshape(Q, r, prod(n)*q)
+				E = Q*Q'-I
+				@test norm(E)/r ≈ 0 atol=tol
+			else
+				Q = reshape(Q, p*prod(n), r)
+				E = Q'*Q-I
+				@test norm(E)/sqrt(r) ≈ 0 atol=tol
+			end
 		end
     end
 end
