@@ -1,7 +1,7 @@
 using LinearAlgebra, Random
 using TensorRefinement.Auxiliary
 
-import Base: length, deepcopy, reverse!, ndims, size
+import Base: length, deepcopy, reverse!, ndims, size, ones, zeros
 import Base: fill!
 import Random: rand!
 import LinearAlgebra: rank
