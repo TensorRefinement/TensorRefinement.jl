@@ -251,7 +251,7 @@ end
 	end
 end
 
-@testset "bpxonditioned stiffness and mass matrices" begin
+@testset "preconditioned stiffness and mass matrices" begin
 	@testset "d = 1, ℓ = $ℓ" for ℓ ∈ (1,8,9)
 		d = 1
 		M0 = FEM.diffbpxdn(ℓ, d, 0; major="first")
