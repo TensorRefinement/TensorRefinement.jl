@@ -86,7 +86,7 @@ end
 end
 
 @testset "diffdn" begin
-	@testset "d = $d, ℓ = $ℓ" for (d,ℓ) ∈ ((1,7),(2,5),(3,4))
+	@testset "d = $d, ℓ = $ℓ" for (d,ℓ) ∈ ((1,7),(2,5),(2,3))
 		@testset "K = $K" for K ∈ 0:d
 			n = 2*ones(Int, d)
 			if K ≠ 0
@@ -279,7 +279,7 @@ end
 			@test Sf ≈ Sf0 rtol=1e-14
 		end
 	end
-	@testset "d = 2, ℓ = $ℓ" for ℓ ∈ (1,4,5)
+	@testset "d = 2, ℓ = $ℓ" for ℓ ∈ (1,3,4)
 		d = 2
 		M0 = FEM.diffbpxdn(ℓ, d, 0; major="first")
 		Λ0 = FEM.intdn(ℓ, d, 0, 0; major="first")
