@@ -11,5 +11,7 @@ include("TensorTrain.jl")
 include("Exponential.jl")
 @reexport using .Exponential
 
+include("FEM.jl")
+@reexport using .FEM
 
 end
