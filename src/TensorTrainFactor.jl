@@ -1,49 +1,59 @@
-
 export FactorSize, Factor, VectorFactor, MatrixFactor
-export factorsize, factorranks, factorndims
+export factorsize, factorranks, factorndims, factornumentries, factorstorage
 export factor, factormatrix, factorrankselect, block
 export factorvcat, factorhcat, factordcat, factorltcat, factorutcat
 export factorranktranspose, factormodetranspose
+export factormodereshape
+export factordiagm
 export factorcontract, factormp, factorkp, factorhp
 export factorqr!, factorqradd, factorsvd!
 
-
 const FactorSize = Vector{Int}
 const Factor{T,N} = Array{T,N} where {T<:Number,N}
-const VectorFactor{T} = Factor{T,3}
-const MatrixFactor{T} = Factor{T,4}
+const VectorFactor{T} = Factor{T,3} where T<:Number
+const MatrixFactor{T} = Factor{T,4} where T<:Number
+
+
+
 
 function factorsize(U::Factor{T,N}) where {T<:Number,N}
-	if length(U) == 0
-		throw(ArgumentError("the factor should not be empty"))
-	end
 	sz = size(U)
-	if length(sz) < 3
-		throw(ArgumentError("the factor should have two rank dimensions and at least one mode dimension"))
+	if length(sz) < 2
+		throw(ArgumentError("the factor should have, at least, two rank dimensions"))
 	end
-	return FactorSize(collect(sz[2:end-1]))
+	n = collect(sz[2:end-1])
+	if any(n .== 0)
+		throw(ArgumentError("the mode sizes should be positive"))
+	end
+	FactorSize(n)
 end
 
 function factorranks(U::Factor{T,N}) where {T<:Number,N}
-	if length(U) == 0
-		throw(ArgumentError("the factor should not be empty"))
-	end
 	sz = size(U)
-	if length(sz) < 3
-		throw(ArgumentError("the factor should have two rank dimensions and at least one mode dimension"))
+	if length(sz) < 2
+		throw(ArgumentError("the factor should have, at least, two rank dimensions"))
+	end
+	if any(sz[2:end-1] .== 0)
+		throw(ArgumentError("the mode sizes should be positive"))
 	end
 	return sz[1],sz[end]
 end
 
+function factornumentries(U::Factor{T,N}) where {T<:Number,N}
+	return length(U)
+end
+
+factorstorage(U::Factor{T,N}) where {T<:Number,N} = factornumentries(U)
+
 function factorndims(U::Factor{T,N}) where {T<:Number,N}
-	if N < 3
-		throw(ArgumentError("the factor should have two rank dimensions and at least one mode dimension"))
+	if N < 2
+		throw(ArgumentError("the factor should have, at least, two rank dimensions"))
 	end
 	return N-2
 end
 
 function factor(U::Array{T,N}) where {T<:Number,N}
-	U = reshape(U, (1,size(U)...,1))
+	U = reshape(U, 1, size(U)..., 1)
 	U = Factor{T,N+2}(U)
 	return U
 end
@@ -255,6 +265,34 @@ end
 
 factormodetranspose(U::Factor{T,N}) where {T<:Number,N} = factormodetranspose(U, collect(factorndims(U):-1:1))
 
+function factormodereshape(U::Factor{T,N}, n::FactorSize) where {T<:Number,N}
+	d = N-2
+	p,q = factorranks(U)
+	if prod(n) ≠ prod(factorsize(U))
+		throw(DimensionMismatch("n is inconsistent with U"))
+	end
+	U = reshape(U, p, n..., q)
+	return U
+end
+
+factormodereshape(U::Factor{T,N}, n::Vector{Any}) where {T<:Number,N} = factormodereshape(U, Vector{Int}())
+
+function factordiagm(U::Factor{T,N}) where {T<:Number,N}
+	d = N-2
+	if d == 0
+		throw(ArgumentError("the factor should have at least one mode dimension"))
+	end
+	p,q = factorranks(U)
+	n = factorsize(U)
+	U = reshape(U, p, prod(n), q)
+	V = zeros(T, p, prod(n), prod(n), q)
+	for β ∈ 1:q, i ∈ 1:prod(n), α ∈ 1:p
+		V[α,i,i,β] = U[α,i,β]
+	end
+	V = reshape(V, p, n..., n..., q)
+	return V
+end
+
 function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::String="last") where {T<:Number,N}
 	if major ∉ ("first","last")
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
@@ -267,7 +305,8 @@ function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::
 	end
 	d = length(m)
 	if d == 0
-		throw(ArgumentError("U has no mode dimensions"))
+		rev && return V*U
+		return U*V
 	end
 	U = reshape(U,(p*prod(m),r)); V = reshape(V,(r,prod(n)*q))
 	W = U*V; W = reshape(W, (p,m...,n...,q))
@@ -280,6 +319,39 @@ function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::
 	W = Factor{T}(W)
 	return W
 end
+
+function factorcontract(U::Factor{T,N}, V::Factor{T,2}) where {T<:Number,N}
+	n = factorsize(U)
+	(p,r) = factorranks(U)
+	(s,q) = factorranks(V)
+	if r ≠ s
+		throw(ArgumentError("U and V have inconsistent ranks"))
+	end
+	U = reshape(U, p*prod(n), r);
+	V = reshape(V, r, q)
+	W = U*V
+	W = reshape(W, p, n..., q)
+	W = Factor{T}(W)
+	return W
+end
+
+function factorcontract(U::Factor{T,2}, V::Factor{T,N}) where {T<:Number,N}
+	n = factorsize(V)
+	(p,r) = factorranks(U)
+	(s,q) = factorranks(V)
+	if r ≠ s
+		throw(ArgumentError("U and V have inconsistent ranks"))
+	end
+	U = reshape(U, p, r);
+	V = reshape(V, r, prod(n)*q)
+	W = U*V
+	W = reshape(W, p, n..., q)
+	W = Factor{T}(W)
+	return W
+end
+
+factorcontract(U::Factor{T,2}, V::Factor{T,2}) where T<:Number = U*V
+
 
 function factormp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ₂::Indices) where {T<:Number,N₁,N₂}
 	n₁ = factorsize(U₁); d₁ = factorndims(U₁)
@@ -308,11 +380,16 @@ function factormp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ
 	τ₂ = setdiff(1:d₂, σ₂)
 	(p₁,q₁) = factorranks(U₁); (p₂,q₂) = factorranks(U₂)
 	U₁ = permutedims(U₁, (1,d₁+2,(τ₁.+1)...,(σ₁.+1)...))
-	U₁ = reshape(U₁, p₁*q₁*prod(n₁[τ₁]), prod(n₁[σ₁]))
+	nτ₁ = Vector{Int}(n₁[τ₁])
+	nσ₁ = Vector{Int}(n₁[σ₁])
+	nτ₂ = Vector{Int}(n₂[τ₂])
+	nσ₂ = Vector{Int}(n₂[σ₂])
+	U₁ = reshape(U₁, p₁*q₁*prod(nτ₁), prod(nσ₁))
 	U₂ = permutedims(U₂, [(σ₂.+1)...,(τ₂.+1)...,1,d₂+2])
-	U₂ = reshape(U₂, prod(n₂[σ₂]), prod(n₂[τ₂])*p₂*q₂)
-	U = U₁*U₂; n = [n₁[τ₁]..., n₂[τ₂]...]; d = length(τ₁) + length(τ₂)
+	U₂ = reshape(U₂, prod(nσ₂), prod(nτ₂)*p₂*q₂)
+	U = U₁*U₂; n = [nτ₁..., nτ₂...]; d = length(τ₁) + length(τ₂)
 	if d == 0
+		# TODO
 		n = [1]; d = 1
 	end
 	U = reshape(U, (p₁,q₁,n...,p₂,q₂))
@@ -390,10 +467,16 @@ function factorkp(U::Union{Factor{T,N},Tuple{Factor{T,N},Int}}, V::Vararg{Union{
 	nf = sum(s)
 	prm = collect(1:nf*d); prm = reshape(prm, d, nf)
 	prm = prm'; prm = prm[:]
-	W = permutedims(W, [1,(prm.+1)...,nf*d+2])
-	W = reshape(W, p, n..., q)
+	if d > 0
+		W = permutedims(W, [1,(prm.+1)...,nf*d+2])
+		W = reshape(W, p, n..., q)
+	else
+		W = reshape(W, p, q)
+	end
 	return W
 end
+
+
 
 function factorhp(U::Factor{T,N}, V::Factor{T,N}) where {T<:Number,N}
 	m = factorsize(U); (p,q) = factorranks(U)
@@ -410,49 +493,178 @@ function factorhp(U::Factor{T,N}, V::Factor{T,N}) where {T<:Number,N}
 	return W
 end
 
-function factorqr!(U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N}
-	n = factorsize(U); (p,q) = factorranks(U); m = ones(Int, length(n))
-	if rev
-		U = reshape(U, p, prod(n)*q)
-		R,U = lq!(U); R,U = Matrix(R),Matrix(U)
-		ρ = size(R, 2)
-		R,U = reshape(R, (p,m...,ρ)),reshape(U, (ρ,n...,q))
-	else
-		U = reshape(U, p*prod(n), q)
-		U,R = qr!(U); U,R = Matrix(U),Matrix(R)
-		ρ = size(R, 1)
-		U,R = reshape(U, (p,n...,ρ)),reshape(R, (ρ,m...,q))
+function factorhp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ₂::Indices) where {T<:Number,N₁,N₂}
+	n₁ = factorsize(U₁); d₁ = factorndims(U₁)
+	n₂ = factorsize(U₂); d₂ = factorndims(U₂)
+	if isa(σ₁, Vector{Any}) && length(σ₁) > 0
+		throw(ArgumentError("if σ₁ is passed as a vector, it should be a vector of the type Vector{Int} or an empty vector of the type Vector{Any}"))
 	end
-	U = Factor{T,N}(U)
-	R = Factor{T,N}(R)
-	return U,R
+	if isa(σ₂, Vector{Any}) && length(σ₂) > 0
+		throw(ArgumentError("if σ₂ is passed as a vector, it should be a vector of the type Vector{Int} or an empty vector of the type Vector{Any}"))
+	end
+	isa(σ₁, Vector{Int}) || (σ₁ = indvec(σ₁; max=d₁))
+	isa(σ₂, Vector{Int}) || (σ₂ = indvec(σ₂; max=d₂))
+	if length(σ₁) ≠ length(σ₂)
+		throw(ArgumentError("the specified sets of modes of σ₁ and σ₂ are inconsistent"))
+	end
+	if σ₁ ⊈ 1:d₁ || unique(σ₁) ≠ σ₁
+		throw(ArgumentError("the set of modes of U₁ is specified incorrectly"))
+	end
+	if σ₂ ⊈ 1:d₂ || unique(σ₂) ≠ σ₂
+		throw(ArgumentError("the set of modes of U₂ is specified incorrectly"))
+	end
+	nσ₁ = n₁[σ₁]
+	nσ₂ = n₂[σ₂]
+	if nσ₁ ≠ nσ₂
+		throw(ArgumentError("U₁ and U₂ are inconsistent with respect to the specified modes"))
+	end
+	m = prod(nσ₁)
+	τ₁ = setdiff(1:d₁, σ₁); nτ₁ = n₁[τ₁]; m₁ = prod(nτ₁)
+	τ₂ = setdiff(1:d₂, σ₂); nτ₂ = n₂[τ₂]; m₂ = prod(nτ₂)
+	(p₁,q₁) = factorranks(U₁); (p₂,q₂) = factorranks(U₂)
+	U₁ = permutedims(U₁, (1,(τ₁.+1)...,d₁+2,(σ₁.+1)...))
+	U₁ = reshape(U₁, p₁*m₁*q₁, m)
+	U₂ = permutedims(U₂, (1,(τ₂.+1)...,d₂+2,(σ₂.+1)...))
+	U₂ = reshape(U₂, p₂*m₂*q₂, m)
+	U = Array{T,3}(undef, p₁*m₁*q₁, p₂*m₂*q₂, m)
+	@views for i ∈ 1:m
+		U[:,:,i] .= U₁[:,i]*transpose(U₂[:,i])
+	end
+	U = reshape(U, p₁, m₁, q₁, p₂, m₂, q₂, m)
+	U = permutedims(U, (1,4,2,7,5,3,6))
+	U = reshape(U, p₁*p₂, nτ₁..., nσ₁..., m₂*q₁*q₂)
+	U = permutedims(U, (1,(invperm((τ₁...,σ₁...)).+1)...,d₁+2))
+	U = reshape(U, p₁*p₂, n₁..., nτ₂..., q₁*q₂)
+	return U
+end
+
+
+function factorproject!(V::Factor{T,N}, U::Factor{T,N}, W::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
+	n = factorsize(U)
+	m = prod(n)
+	if factorsize(W) ≠ n
+		throw(DimensionMismatch("U and W differ in mode size"))
+	end
+	if any(factorsize(V) .≠ 1) 
+		throw(DimensionMismatch("V should have mode size 1,…,1"))
+	end
+	p,q = factorranks(U)
+	r,s = factorranks(W)
+	if rev
+		if q ≠ s
+			throw(DimensionMismatch("U and W differ in the second rank"))
+		end
+		if factorranks(V) ≠ (p,r)
+			throw(DimensionMismatch("V is inconsistant with U and W in rank"))
+		end
+		V = reshape(V, p, r)
+		U = reshape(U, p, m*q)
+		W = reshape(W, r, m*s)
+		mul!(V, U, adjoint(W))
+		U .-= V*W
+		V = reshape(V, p, ones(Int, length(n))..., r)
+	else
+		if p ≠ r
+			throw(DimensionMismatch("U and W differ in the first rank"))
+		end
+		if factorranks(V) ≠ (s,q)
+			throw(DimensionMismatch("V is inconsistant with U and W in rank"))
+		end
+		V = reshape(V, s, q)
+		U = reshape(U, p*m, q)
+		W = reshape(W, r*m, s)
+		mul!(V, adjoint(W), U)
+		U .-= W*V
+		V = reshape(V, s, ones(Int, length(n))..., q)
+	end
+	V
+end
+
+function factorqr!(U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
+	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
+	if rev
+		if p == 0 || q == 0
+			R,U = zeros(T, p, m..., 0),zeros(T, 0, n..., q)
+		else
+			U = reshape(U, p, prod(n)*q)
+			R,U = lq!(U); R,U = Matrix(R),Matrix(U)
+			ρ = size(R, 2)
+			R,U = reshape(R, p, m..., ρ),reshape(U, ρ, n..., q)
+		end
+	else
+		if p == 0 || q == 0
+			U,R = zeros(T, p, n..., 0),zeros(T, 0, m..., q)
+		else
+			U = reshape(U, p*prod(n), q)
+			U,R = qr!(U); U,R = Matrix(U),Matrix(R)
+			ρ = size(R, 1)
+			U,R = reshape(U, p, n..., ρ),reshape(R, ρ, m..., q)
+		end
+	end
+	Factor{T,N}(U),Factor{T,N}(R)
 end
 
 factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N} = factorqr!(U;  rev=rev)
 
-function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N}
-	n = factorsize(U); (p,q) = factorranks(U); m = ones(Int, length(n))
+function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=false) where {T<:FloatRC,N}
+	# when returnS==true, a factor S satisfying A ⨝ S = Q if rev==false and S ⨝ A = Q if rev==true is returned
+	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
 	if rev
-		U = reshape(U, p, prod(n)*q)
-		U = Matrix(U') # reallocation
-		f = qr!(U, Val(true))
-		U,R = Matrix(f.Q),Matrix(f.R*adjoint(f.P))
-		R,U = Matrix(R'),Matrix(U')
-		ρ = size(R, 2)
-		R,U = reshape(R, (p,m...,ρ)),reshape(U, (ρ,n...,q))
+		if p == 0 || q == 0
+			R,Q = zeros(T, p, m..., 0),zeros(T, 0, n..., q)
+			if returnS
+				S = zeros(T, 0, m..., p)
+			end
+		else
+			U = reshape(U, p, prod(n)*q)
+			U = permutedims(U) # reallocation
+			fact = qr!(U, Val(true))
+			π = invperm(fact.p)
+			R = permutedims(fact.R[:,π])
+			ρ = size(R, 2)
+			R = reshape(R, p, m..., ρ)
+			Q = permutedims(fact.Q*Matrix{T}(I, ρ, ρ))
+			Q = reshape(Q, ρ, n..., q)
+			if returnS
+				S = inv(fact.R[:,1:ρ])
+				(ρ < p) && (S = [S; zeros(T, p-ρ, ρ)])
+				S = permutedims(S[π,:])
+				S = reshape(S, ρ, m..., p)
+			end
+		end
 	else
-		U = reshape(U, p*prod(n), q)
-		f = qr!(U, Val(true))
-		U,R = Matrix(f.Q),Matrix(f.R*adjoint(f.P))
-		ρ = size(R, 1)
-		U,R = reshape(U, (p,n...,ρ)),reshape(R, (ρ,m...,q))
+		if p == 0 || q == 0
+			Q,R = zeros(T, p, n..., 0),zeros(T, 0, m..., q)
+			if returnS
+				S = zeros(T, q, m..., 0)
+			end
+		else
+			U = reshape(U, p*prod(n), q)
+			fact = qr!(U, Val(true))
+			π = invperm(fact.p)
+			R = fact.R[:,π]
+			ρ = size(R, 1)
+			R = reshape(R, ρ, m..., q)
+			Q = fact.Q*Matrix{T}(I, ρ, ρ)
+			Q = reshape(Q, p, n..., ρ)
+			if returnS
+				S = inv(fact.R[:,1:ρ])
+				(ρ < q) && (S = [S; zeros(T, q-ρ, ρ)])
+				S = S[π,:]
+				S = reshape(S, q, m..., ρ)
+			end
+		end
 	end
-	U = Factor{T,N}(U)
+	Q = Factor{T,N}(Q)
 	R = Factor{T,N}(R)
-	return U,R
+	if returnS
+		S = Factor{T,N}(S)
+		return Q,R,S
+	end
+	return Q,R
 end
 
-function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N}
+function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
 	# assumes that Q is orthogonal w.r.t the first rank if rev==true and w.r.t the second rank if rev==false
 	n = factorsize(Q); m = ones(Int, length(n))
 	if factorsize(U) ≠ n
@@ -506,23 +718,24 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 end
 
 """
-	factorsvd!(W, m, n; aTol=0, rTol=0, rank=0, major="last", rev=false)
+	factorsvd!(W, m, n; atol=0, rtol=0, rank=0, major="last", rev=false)
 
 produces U and V such that W ≈ U ⋈ V if rev == false and W ≈ V ⋈ U if rev == true
 U is orthogonal — with respect to the second or first rank index
                   if rev == false or rev == true respectively
-m and n are the mode-size vectors of U and V respectively (at most one of the two arguments may be replaced by ":"
-major determines whether the "first" or "last" factor in the SKP carries the major bits
-rank=0 means no rank thresholding
+m and n are the mode-size vectors of U and V respectively (at most one of these two arguments may be replaced by ":")
+major determines whether the "first" or "last" factor in the product U ⋈ V carries the major bits
+rank=0 leads to no rank thresholding
 """
 function factorsvd!(W::Factor{T,N},
                     m::Union{FactorSize,Colon},
                     n::Union{FactorSize,Colon};
-                    aTol::S=convert(S, 0),
-                    rTol::S=convert(S, 0),
+					threshold::S=zero(S),
+                    atol::S=zero(S),
+                    rtol::S=zero(S),
                     rank::Int=0,
                     major::String="last",
-					rev::Bool=false)	where {S<:AbstractFloat,T<:FloatRC{S},N}
+					rev::Bool=false) where {S<:AbstractFloat,T<:FloatRC{S},N}
 	d = factorndims(W)
 	k = factorsize(W)
 	if isa(m, Colon) && isa(n, Colon)
@@ -561,20 +774,32 @@ function factorsvd!(W::Factor{T,N},
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
 	end
 	#
-	if aTol < 0 || !isfinite(aTol)
-		throw(ArgumentError("aTol, when specified, should be nonnegative and finite"))
+	if threshold < 0 || !isfinite(threshold)
+		throw(ArgumentError("threshold, when specified, should be nonnegative and finite"))
 	end
 	#
-	aTol² = aTol.^2
-	if !isfinite(aTol²)
-		throw(ErrorException("overflow encountered while squaring aTol, which was passed finite"))
+	threshold² = threshold^2
+	if !isfinite(threshold²)
+		throw(ErrorException("overflow encountered while squaring threshold, which was passed finite"))
 	end
-	if aTol > 0 && aTol² == 0
-		throw(ErrorException("underflow encountered while squaring aTol, which was passed positive"))
+	if threshold > 0 && threshold² == 0
+		throw(ErrorException("underflow encountered while squaring threshold, which was passed positive"))
 	end
 	#
-	if rTol < 0 || !isfinite(rTol)
-		throw(ArgumentError("rTol, when specified, should be nonnegative and finite"))
+	if atol < 0 || !isfinite(atol)
+		throw(ArgumentError("atol, when specified, should be nonnegative and finite"))
+	end
+	#
+	atol² = atol^2
+	if !isfinite(atol²)
+		throw(ErrorException("overflow encountered while squaring atol, which was passed finite"))
+	end
+	if atol > 0 && atol² == 0
+		throw(ErrorException("underflow encountered while squaring atol, which was passed positive"))
+	end
+	#
+	if rtol < 0 || !isfinite(rtol)
+		throw(ArgumentError("rtol, when specified, should be nonnegative and finite"))
 	end
 	#
 	if rank < 0
@@ -582,39 +807,44 @@ function factorsvd!(W::Factor{T,N},
 	end
 	ρ = rank
 	#
-	(p,q) = factorranks(W); prm = collect(1:d)
+	p,q = factorranks(W); prm = collect(1:d)
 	k = rev ? [n; m] : [m; n]
 	prm = (major == "last") ? [2*prm.-1; 2*prm] : [2*prm; 2*prm.-1]
 	W = reshape(W, (p,k[invperm(prm)]...,q))
 	W = permutedims(W, vcat(1, prm.+1, 2d+2))
 	W = reshape(W, p*prod(k[1:d]), prod(k[d+1:2d])*q)
-	U,Σ,V = svd!(W; full=false); V = V';
-	σ = copy(Σ); μ = norm(σ)
-	if !isfinite(μ)
-		throw(ErrorException("overflow encountered while computing the norm of the decomposition"))
-	end
-	rTol = min(rTol, 1.0);
-	τ = μ*rTol
-	if μ > 0 && rTol > 0 && τ == 0
-		throw(ErrorException("underflow encountered while computing the absolute accuracy threshold from the relative one"))
-	end
-	τ² = τ^2
-	if μ > 0 && rTol > 0 && τ² == 0
-		throw(ErrorException("underflow encountered while computing the squared absolute accuracy threshold from the squared relative one"))
-	end
-	τ² = [aTol²,τ²]; ind = (τ² .> 0)
-	τ² = any(ind) ? minimum(τ²[ind]) : 0.0
+	μ = norm(W)
 	if μ == 0
-		ε = 0.0; δ = 0.0; ρ = 1
-		U = zeros(T, (p,k[1:d]...,1))
-		V = zeros(T, (1,k[d+1:2d]...,q))
+		ε = zero(S); δ = zero(S); ρ = 0
+		σ = Vector{S}()
+		U = zeros(T, p, k[1:d]..., ρ)
+		V = zeros(T, ρ, k[d+1:2d]..., q)
+		rev && ((U,V) = (V,U))
 	else
-		ε²,ρ = threshold(σ.^2, τ², ρ); ε = sqrt(ε²); δ = ε/μ
-		ρ = max(ρ,1)
-		U = U[:,1:ρ]; Σ = Σ[1:ρ]; V = V[1:ρ,:]
-		rev ? U = U*Diagonal(Σ) : V = Diagonal(Σ)*V
-		U = reshape(U, (p,k[1:d]...,ρ))
-		V = reshape(V, (ρ,k[d+1:2d]...,q))
+		fact = svd!(W; full=false, alg=LinearAlgebra.QRIteration())
+		U = fact.U
+		σ = fact.S
+		V = fact.Vt
+		μ = norm(σ)
+		if !isfinite(μ)
+			throw(ErrorException("overflow encountered while computing the norm of the decomposition"))
+		end
+		rtol = min(rtol, one(S));
+		tol = μ*rtol
+		if μ > 0 && rtol > 0 && tol == 0
+			throw(ErrorException("underflow encountered while computing the absolute accuracy threshold from the relative one"))
+		end
+		tol² = tol^2
+		if μ > 0 && rtol > 0 && tol² == 0
+			throw(ErrorException("underflow encountered while computing the squared absolute accuracy threshold from the squared relative one"))
+		end
+		tol² = [atol²,tol²]; ind = (tol² .> 0)
+		tol² = any(ind) ? minimum(tol²[ind]) : zero(S)
+		ε²,ρ = Auxiliary.threshold(σ.^2, threshold², tol², ρ); ε = sqrt(ε²); δ = ε/μ
+		U = U[:,1:ρ]; V = V[1:ρ,:]
+		rev ? U = U*Diagonal(σ[1:ρ]) : V = Diagonal(σ[1:ρ])*V
+		U = reshape(U, p, k[1:d]..., ρ)
+		V = reshape(V, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
 	end
 	U = Factor{T,N}(U)

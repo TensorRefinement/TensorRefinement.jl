@@ -11,6 +11,12 @@ include("TensorTrain.jl")
 include("Exponential.jl")
 @reexport using .Exponential
 
+include("Legendre.jl")
+@reexport using .Legendre
+
+include("Chebyshev.jl")
+@reexport using .Chebyshev
+
 include("FEM.jl")
 @reexport using .FEM
 

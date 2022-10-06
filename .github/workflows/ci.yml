@@ -1,6 +1,5 @@
 name: CI
 on:
-  - push
   - pull_request
 jobs:
   test:
@@ -10,8 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.0'
-          - '1.5'
+          - '1.6'
           - 'nightly'
         os:
           - ubuntu-latest
