@@ -2,18 +2,20 @@ export DecSize, DecRank, Dec, VectorDec, MatrixDec
 export checkndims, checklength, checkndims, checksize, checkrank, checkranks
 export declength, decndims, decsize, decranks, decrank
 export dec, dec!, vector, decrankselect!, decrankselect, factor!, factor, block!, block, decvcat, dechcat, decdcat
-export decscale!, decreverse!, decmodetranspose!, decfill!, decrand!
+export decscale!, decreverse!, decmodetranspose!
+export decmodereshape
+export decfill!, decrand!
 export deczeros, decones, decrand
 export decappend!, decprepend!, decpush!, decpushfirst!, decpop!, decpopfirst!, decinsert!, decdeleteat!
 export decinsertidentity!
-export decskp!, decskp, decmp, deckp, decadd, dechp
+export decskp!, decskp, decmp, deckp, decaxpby!, decadd!, decaxpby, decadd, dechp
 export decqr!, decsvd!
 
 const DecSize = Matrix{Int}
 const DecRank = Vector{Int}
 const Dec{T,N} = Vector{Factor{T,N}} where {T<:Number,N}
-const VectorDec{T} = Vector{VectorFactor{T}} where {T<:Number}
-const MatrixDec{T} = Vector{MatrixFactor{T}} where {T<:Number}
+const VectorDec{T} = Vector{VectorFactor{T}} where T<:Number
+const MatrixDec{T} = Vector{MatrixFactor{T}} where T<:Number
 
 
 function checkndims(d::Int)
@@ -66,8 +68,8 @@ function checkrank(r::DecRank; len::Int=0)
 	if length(r) < 2
 		throw(ArgumentError("the rank vector should contain at least two elements"))
 	end
-	if any(r .≤ 0)
-		throw(ArgumentError("the elements of the rank vector should be positive"))
+	if any(r .< 0)
+		throw(ArgumentError("the elements of the rank vector should be nonnegative"))
 	end
 	if len > 0 && length(r) ≠ len+1
 		throw(ArgumentError("the number of elements in the rank vector is incorrect"))
@@ -78,8 +80,8 @@ function checkranks(p::Vector{Int}, q::Vector{Int}; len::Int=0)
 	if length(p) ≠ length(q)
 		throw(ArgumentError("the rank vectors should have the same length"))
 	end
-	if any([p q] .≤ 0)
-		throw(ArgumentError("the elements of p and q should be positive"))
+	if any([p q] .< 0)
+		throw(ArgumentError("the elements of p and q should be nonnegative"))
 	end
 	if p[2:end] ≠ q[1:end-1]
 		throw(DimensionMismatch("the ranks are inconsistent"))
@@ -95,19 +97,15 @@ function declength(U::Dec{T,N}) where {T<:Number,N}
 	return L
 end
 
-function decndims(U::Dec{T,N}) where {T<:Number,N}
-	# L = declength(U)
-	# d = [ ndims(U[ℓ])-2 for ℓ ∈ 1:L ]
-	d = [ factorndims(V) for V ∈ U ]
-	checkndims(d)
-	return d[1]
-end
+decndims(U::Dec{T,N}) where {T<:Number,N} = N-2
 
 function decsize(U::Dec{T,N}) where {T<:Number,N}
 	L = length(U)
 	d = decndims(U)
-	n = [ size(U[ℓ], 1+k) for k ∈ 1:d, ℓ ∈ 1:L ]
-	n = n[:,:]
+	n = Matrix{Int}(undef, d, L)
+	for ℓ ∈ 1:L, k ∈ 1:d
+		n[k,ℓ] = size(U[ℓ], 1+k)
+	end
 	checksize(n)
 	return n
 end
@@ -115,8 +113,12 @@ end
 function decranks(U::Dec{T,N}) where {T<:Number,N}
 	L = length(U)
 	d = decndims(U)
-	p = [ size(U[ℓ], 1) for ℓ ∈ 1:L ]
-	q = [ size(U[ℓ], d+2) for ℓ ∈ 1:L ]
+	p = Vector{Int}(undef, L)
+	q = Vector{Int}(undef, L)
+	for ℓ ∈ 1:L
+		p[ℓ] = size(U[ℓ], 1)
+		q[ℓ] = size(U[ℓ], d+2)
+	end
 	return p,q
 end
 
@@ -154,8 +156,8 @@ function dec(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; fir
 	nlen = size(n, 2)
 	rvec = isa(r, DecRank)
 	rlen = length(r)
-	if any(r .≤ 0)
-		throw(ArgumentError("the rank should be a positive integer or a vector of such"))
+	if any(r .< 0)
+		throw(ArgumentError("the rank should be a nonnegative integer or a vector of such"))
 	end
 	if rvec && (rlen < 2)
 		throw(ArgumentError("when the rank parameter is specified as a vector, it should contain at least two entries"))
@@ -201,10 +203,10 @@ function dec(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; fir
 	return U
 end
 
-dec(n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = dec(Float64, n, r; first=first, last=last, len=len)
+dec(n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) = dec(Float64, n, r; first=first, last=last, len=len)
 
 function dec!(U::Factor{T,N}) where {T<:Number,N}
-	return [U]
+	return Dec{T,N}([U])
 end
 
 function dec(U::Factor{T,N}; len::Int=1) where {T<:Number,N}
@@ -220,7 +222,7 @@ function dec(U::Factor{T,N}; len::Int=1) where {T<:Number,N}
 			throw(ArgumentError("the two ranks of U should be equal when the number of factors is specified as larger than one"))
 		end
 	end
-	return [ copy(U) for ℓ ∈ 1:len ]
+	return Dec{T,N}([ copy(U) for ℓ ∈ 1:len ])
 end
 
 function vector(U::Dec{T,N}) where {T<:Number,N}
@@ -232,6 +234,9 @@ function decrankselect!(U::Dec{T,N}, α::Indices, β::Indices) where {T<:Number,
 	# 	throw(ArgumentError("for consistency with Base.selectdim, scalar α and β are not accepted; use α:α or β:β instead of α or β to select a subtensor of the factor whose first or second rank is one"))
 	# end
 	L = declength(U)
+	if L == 0
+		throw(ArgumentError("the decomposition is empty"))
+	end
 	r = decrank(U); p,q = r[1],r[L+1]
 	α = indvec(α; min=1, max=p)
 	β = indvec(β; min=1, max=q)
@@ -373,6 +378,24 @@ end
 
 decmodetranspose!(U::Dec{T,N}) where {T<:Number,N} = decmodetranspose!(U, collect(decndims(U):-1:1))
 
+function decmodereshape(U::Dec{T,N}, n::DecSize) where {T<:Number,N}
+	d = N-2
+	if d == 0
+		throw(ArgumentError("the decomposition should have at least one mode dimension"))
+	end
+	ℓ = declength(U)
+	if size(n, 2) ≠ ℓ
+		throw(ArgumentError("the number of columns in n is inconsistent with U"))
+	end
+	if prod(n; dims=1) ≠ prod(decsize(U); dims=1)
+		throw(DimensionMismatch("n is inconsistent with U"))
+	end
+	U = [ factormodereshape(U[k], n[:,k]) for k ∈ 1:ℓ ]
+	d = size(n, 1)
+	U = Dec{T,d+2}(U)
+	return U
+end
+
 function decfill!(U::Dec{T,N}, v::T) where {T<:Number,N}
 	L = declength(U)
 	for ℓ ∈ 1:L
@@ -390,11 +413,11 @@ function decrand!(rng::AbstractRNG, U::Dec{T,N}) where {T<:Number,N}
 end
 decrand!(U::Dec{T,N}) where {T<:Number,N} = decrand!(Random.GLOBAL_RNG, U)
 
-deczeros(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = decfill!(dec(T, n, r; first=first, last=last, len=len), convert(T, 0))
+deczeros(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = decfill!(dec(T, n, r; first=first, last=last, len=len), zero(T))
 deczeros(n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) = deczeros(Float64, n, r; first=first, last=last, len=len)
 
-decones(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = decfill!(dec(T, n, r; first=first, last=last, len=len), convert(T, 1))
-decones(n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) = deczeros(Float64, n, r; first=first, last=last, len=len)
+decones(::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = decfill!(dec(T, n, r; first=first, last=last, len=len), one(T))
+decones(n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) = decones(Float64, n, r; first=first, last=last, len=len)
 
 decrand(rng::AbstractRNG, ::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = decrand!(rng, dec(T, n, r; first=first, last=last, len=len))
 decrand(rng::AbstractRNG, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) = decrand(rng, Float64, n, r; first=first, last=last, len=len)
@@ -405,6 +428,7 @@ function decappend!(U::Dec{T,N}, V::Dec{T,N}; rankprecheck::Bool=true, rankpostc
 	if decndims(U) ≠ decndims(V)
 		throw(DimensionMismatch("U and V are inconsistent in the number of dimensions"))
 	end
+	(declength(V) == 0) && return U
 	p,q = decranks(U)
 	r,s = decranks(V)
 	if rankprecheck
@@ -428,6 +452,7 @@ function decprepend!(U::Dec{T,N}, V::Dec{T,N}; rankprecheck::Bool=true, rankpost
 	if decndims(U) ≠ decndims(V)
 		throw(DimensionMismatch("U and V have different numbers of dimensions"))
 	end
+	(declength(V) == 0) && return U
 	p,q = decranks(U); r,s = decranks(V)
 	if rankprecheck
 		try checkranks(p,q) catch
@@ -718,7 +743,33 @@ function deckp(U::Union{Dec{T,N},Tuple{Dec{T,N},Int}}, V::Vararg{Union{Dec{T,N},
 end
 
 
-function decadd(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N}
+# function decaxpby(α::Vector{T}, U::Dec{T,N}, β::Vector{T}, V::Dec{T,N}) where {T<:Number,N}
+# 	m = decsize(U); L = declength(U)
+# 	p = decrank(U); q = decrank(V)
+# 	if declength(V) ≠ L
+# 		throw(ArgumentError("U and V differ in the number of factors"))
+# 	end
+# 	if decsize(V) ≠ m
+# 		throw(ArgumentError("U and V are inconsistent in mode size"))
+# 	end
+# 	if length(α) ≠ L
+# 		throw(ArgumentError("α should have the same length as U and V"))
+# 	end
+# 	if length(β) ≠ L
+# 		throw(ArgumentError("β should have the same length as U and V"))
+# 	end
+# 	if q[1] ≠ p[1]
+# 		throw(ArgumentError("the decompositions are incompatible in the first rank"))
+# 	end
+# 	if q[L+1] ≠ p[L+1]
+# 		throw(ArgumentError("the decompositions are incompatible in the last rank"))
+# 	end
+# 	(L == 1) && return U .+ V
+# 	W = [ factorhcat(α[1]*U[1], β[1]*V[1]), [ factordcat(α[ℓ]*U[ℓ], β[ℓ]*V[ℓ]) for ℓ ∈ 2:L-1 ]..., factorvcat(α[L]*U[L], β[L]*V[L]) ]
+# 	return W
+# end
+
+function decaxpby!(α::Vector{T}, U::Dec{T,N}, β::Vector{T}, V::Dec{T,N}) where {T<:Number,N}
 	m = decsize(U); L = declength(U)
 	p = decrank(U); q = decrank(V)
 	if declength(V) ≠ L
@@ -727,15 +778,58 @@ function decadd(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N}
 	if decsize(V) ≠ m
 		throw(ArgumentError("U and V are inconsistent in mode size"))
 	end
+	if length(α) ≠ L
+		throw(ArgumentError("α should have the same length as U and V"))
+	end
+	if length(β) ≠ L
+		throw(ArgumentError("β should have the same length as U and V"))
+	end
 	if q[1] ≠ p[1]
 		throw(ArgumentError("the decompositions are incompatible in the first rank"))
 	end
 	if q[L+1] ≠ p[L+1]
 		throw(ArgumentError("the decompositions are incompatible in the last rank"))
 	end
-	(L == 1) && return U .+ V
-	W = [ factorhcat(U[1], V[1]), [ factordcat(U[ℓ], V[ℓ]) for ℓ ∈ 2:L-1 ]..., factorvcat(U[L], V[L]) ]
-	return W
+	if L == 1
+		U[1] = α[1]*U[1]+β[1]*V[1]
+	else
+		U[1] = factorhcat(α[1]*U[1], β[1]*V[1])
+		for ℓ ∈ 2:L-1
+			U[ℓ] = factordcat(α[ℓ]*U[ℓ], β[ℓ]*V[ℓ])
+		end
+		U[L] = factorvcat(α[L]*U[L], β[L]*V[L])
+	end
+	return U
+end
+decaxpby!(α::T, U::Dec{T,N}, β::T, V::Dec{T,N}) where {T<:Number,N} = decaxpby!([ones(T, declength(U)-1); α], U, [ones(T, declength(V)-1); β], V)
+decadd!(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N} = decaxpby!(one(T), U, one(T), V)
+
+decaxpby(α::Vector{T}, U::Dec{T,N}, β::Vector{T}, V::Dec{T,N}) where {T<:Number,N} = decaxpby!(α, copy(U), β, V)
+decaxpby(α::T, U::Dec{T,N}, β::T, V::Dec{T,N}) where {T<:Number,N} = decaxpby([ones(T, declength(U)-1); α], U, [ones(T, declength(V)-1); β], V)
+decadd(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N} = decaxpby(one(T), U, one(T), V)
+
+function decadd(U::Dec{T,N}, V::Dec{T,N}, W::Vararg{Dec{T,N},M}) where {T<:Number,N,M}
+	L = declength(U); m = decsize(U); p = decrank(U)
+	W = (V,W...)
+	for V ∈ W
+		if declength(V) ≠ L
+			throw(ArgumentError("the decompositions are incompatible in the number of factors"))
+		end
+		if decsize(V) ≠ m
+			throw(ArgumentError("the decompositions are incompatible in mode size"))
+		end
+		q = decrank(V)
+		if q[1] ≠ p[1]
+			throw(ArgumentError("the decompositions are incompatible in the first rank"))
+		end
+		if q[L+1] ≠ p[L+1]
+			throw(ArgumentError("the decompositions are incompatible in the last rank"))
+		end
+	end
+	if L == 1
+		return U + sum(W)
+	end
+	[ factorhcat(U[1], [ V[1] for V ∈ W ]...), [ factordcat(U[ℓ], [ V[ℓ] for V ∈ W ]...) for ℓ ∈ 2:L-1 ]..., factorvcat(U[L], [ V[L] for V ∈ W ]...) ]
 end
 
 function dechp(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N}
@@ -750,13 +844,13 @@ function dechp(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N}
 	return W
 end
 
-function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="") where {T<:FloatRC,N}
+function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N}
 	L = declength(W); decrank(W)
 	if L == 0
 		throw(ArgumentError("the decomposition is empty"))
 	end
 	if path ∉ ("","forward","backward")
-		throw(ArgumentError("path should be either \"\" (default, accepted only when path can be deduced from Λ), \"forward\" or \"backward\""))
+		throw(ArgumentError("path should be \"\" (default, accepted only when path can be deduced from Λ), \"forward\" or \"backward\""))
 	end
 	if path == "" && (isa(Λ, Colon) || length(unique(Λ)) == 1)
 		throw(ArgumentError("path cannot be deduced from Λ and should be specified as either \"forward\" or \"backward\""))
@@ -787,9 +881,20 @@ function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="") wh
 		throw(ArgumentError("Λ is not sorted in descending order, so it is inconsistent with any backward path"))
 	end
 	M = length(Λ)
+	if returnRfactors
+		Rfactors = Vector{Matrix{T}}()
+	end
 	for λ ∈ 1:M
 		ℓ = Λ[λ]
 		W[ℓ],R = factorqr!(W[ℓ], Val(pivot); rev=(path == "backward"))
+		if returnRfactors
+			Rfactor = (λ < M) ? R : copy(R)
+			if path == "backward"
+				pushfirst!(Rfactors, reshape(Rfactor, size(Rfactor, 1), size(Rfactor, N)))
+			else
+				push!(Rfactors, reshape(Rfactor, size(Rfactor, 1), size(Rfactor, N)))
+			end
+		end
 		if λ < M
 			ν = Λ[λ+1]
 			W[ν] = factorcontract(R, W[ν], rev=(path == "backward"))
@@ -797,13 +902,16 @@ function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="") wh
 			decinsert!(W, ℓ, R; path=path, rankprecheck=false, rankpostcheck=true)
 		end
 	end
+	if returnRfactors
+		return W,Rfactors
+	end
 	return W
 end
 
-decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="") where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path)
+decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path, returnRfactors=returnRfactors)
 
 
-function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, rank::Int2=0, major::String="last") where {T<:FloatRC,N}
+function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", threshold::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=v, rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
 	# assumes that the decomposition is orthogonal
 	L = declength(W); decrank(W)
 	if L == 0
@@ -852,11 +960,20 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	end
 	K = length(Λ)
 	#
-	if any(aTol .< 0)
-		throw(ArgumentError("aTol should be a nonnegative Float64 or a vector of such"))
+	if any(threshold .< 0)
+		throw(ArgumentError("threshold should be a nonnegative Float or a vector of such"))
 	end
-	if isa(aTol, Float64)
-		aTol = aTol*ones(K)/sqrt(K)
+	if isa(threshold, S)
+		threshold = threshold*ones(S, K)
+	elseif length(threshold) ≠ K
+		throw(ArgumentError("threshold, passed as a vector, has incorrect length"))
+	end
+
+	if any(aTol .< 0)
+		throw(ArgumentError("aTol should be a nonnegative Float or a vector of such"))
+	end
+	if isa(aTol, S)
+		aTol = aTol*ones(S, K)/sqrt(one(S)*K)
 	elseif length(aTol) ≠ K
 		throw(ArgumentError("aTol, passed as a vector, has incorrect length"))
 	end
@@ -864,26 +981,26 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(aTolDistr .< 0)
 		throw(ArgumentError("aTolDistr should be a nonnegative Float64 or a vector of such"))
 	end
-	if isa(aTolDistr, Float64)
-		aTolDistr = aTolDistr*ones(K)/sqrt(K)
+	if isa(aTolDistr, S)
+		aTolDistr = aTolDistr*ones(S, K)/sqrt(one(S)*K)
 	elseif length(aTolDistr) ≠ K
 		throw(ArgumentError("aTolDistr, passed as a vector, has incorrect length"))
 	end
 
 	if any(rTol .< 0)
-		throw(ArgumentError("rTol should be a nonnegative Float64 or a vector of such"))
+		throw(ArgumentError("rTol should be a nonnegative Float or a vector of such"))
 	end
-	if isa(rTol, Float64)
-		rTol = rTol*ones(K)/sqrt(K)
+	if isa(rTol, S)
+		rTol = rTol*ones(S, K)/sqrt(one(S)*K)
 	elseif length(rTol) ≠ K
 		throw(ArgumentError("rTol, passed as a vector, has incorrect length"))
 	end
 
 	if any(rTolDistr .< 0)
-		throw(ArgumentError("rTolDistr should be a nonnegative Float64 or a vector of such"))
+		throw(ArgumentError("rTolDistr should be a nonnegative Float or a vector of such"))
 	end
-	if isa(rTolDistr, Float64)
-		rTolDistr = rTolDistr*ones(K)/sqrt(K)
+	if isa(rTolDistr, S)
+		rTolDistr = rTolDistr*ones(S, K)/sqrt(one(S)*K)
 	elseif length(rTolDistr) ≠ K
 		throw(ArgumentError("rTolDistr, passed as a vector, has incorrect length"))
 	end
@@ -900,24 +1017,24 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
 	end
 
-	ε = zeros(Float64, K); δ = zeros(Float64, K)
-	σ = Vector{Vector{Float64}}(undef, K)
+	ε = zeros(S, K); δ = zeros(S, K)
+	σ = Vector{Vector{S}}(undef, K)
 	ρ = zeros(Int, K)
-	μ = 0.0
-	aTolAcc = 0.0; rTolAcc = 0.0
+	μ = zero(S)
+	aTolAcc = zero(S); rTolAcc = zero(S)
 	for λ ∈ 1:K
 		ℓ = Λ[λ]
 		if λ == 1
-			ε₁ = [aTol[λ],aTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]; ε₁ = isempty(ε₁) ? 0.0 : minimum(ε₁)
-			δ₁ = [rTol[λ],rTolDistr[λ]]; δ₁ = δ₁[δ₁ .> 0]; δ₁ = isempty(δ₁) ? 0.0 : minimum(δ₁)
-			U,V,ε[1],δ[1],μ,ρ[1],σ[1] = factorsvd!(W[ℓ], n[:,λ], :; aTol=ε₁, rTol=δ₁, rank=rank[λ], rev=(path == "backward"), major=major)
+			ε₁ = [aTol[λ],aTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]; ε₁ = isempty(ε₁) ? zero(S) : minimum(ε₁)
+			δ₁ = [rTol[λ],rTolDistr[λ]]; δ₁ = δ₁[δ₁ .> 0]; δ₁ = isempty(δ₁) ? zero(S) : minimum(δ₁)
+			U,V,ε[1],δ[1],μ,ρ[1],σ[1] = factorsvd!(W[ℓ], n[:,λ], :; threshold=threshold[λ], atol=ε₁, rtol=δ₁, rank=rank[λ], rev=(path == "backward"), major=major)
 		else
-			(aTolDistr[λ] > 0) && (aTolDistr[λ] = sqrt(aTolDistr[λ]^2+aTolAcc^2); aTolAcc = 0.0)
-			(rTolDistr[λ] > 0) && (rTolDistr[λ] = sqrt(rTolDistr[λ]^2+rTolAcc^2); rTolAcc = 0.0)
+			(aTolDistr[λ] > 0) && (aTolDistr[λ] = sqrt(aTolDistr[λ]^2+aTolAcc^2); aTolAcc = zero(S))
+			(rTolDistr[λ] > 0) && (rTolDistr[λ] = sqrt(rTolDistr[λ]^2+rTolAcc^2); rTolAcc = zero(S))
 			ε₁ = [aTol[λ],aTolDistr[λ],μ*rTol[λ],μ*rTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]
-			ε₁ = isempty(ε₁) ? 0.0 : minimum(ε₁)
-			U,V,ε[λ],_,_,ρ[λ],σ[λ] = factorsvd!(W[ℓ], n[:,λ], :; aTol=ε₁, rank=rank[λ], rev=(path == "backward"), major=major)
-			δ[λ] = (μ > 0) ? ε[λ]/μ : 0.0
+			ε₁ = isempty(ε₁) ? zero(S) : minimum(ε₁)
+			U,V,ε[λ],_,_,ρ[λ],σ[λ] = factorsvd!(W[ℓ], n[:,λ], :; threshold=threshold[λ], atol=ε₁, rank=rank[λ], rev=(path == "backward"), major=major)
+			δ[λ] = (μ > 0) ? ε[λ]/μ : zero(S)
 		end
 		W[ℓ] = U
 		if λ < K && Λ[λ+1] ≠ ℓ
@@ -931,6 +1048,6 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	return W,ε,δ,μ,ρ,σ
 end
 
-decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, rank::Int2=0, major::String="last") where {T<:FloatRC,N} = decsvd!(W, Λ, :; path=path, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", threshold::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, threshold=threshold, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
 
-decsvd!(W::Dec{T,N}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, rank::Int2=0, major::String="last") where {T<:FloatRC,N} = decsvd!(W, :, :; path=path, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}; path::String="", threshold::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, threshold=threshold, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
