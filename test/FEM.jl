@@ -137,7 +137,7 @@ end
 end
 
 @testset "diffextdn" begin
-	@testset "d = $d, ℓ = $ℓ, L = $L" for (d,ℓ,L) ∈ ((1,0,7),(1,1,7),(1,3,7),(1,7,7),(2,3,5),(3,2,4))
+	@testset "d = $d, ℓ = $ℓ, L = $L" for (d,ℓ,L) ∈ ((1,0,7),(1,1,7),(1,3,7),(1,7,7),(2,3,5),(3,1,3),(3,2,3))
 		@testset "K = $K" for K ∈ 0:d
 			n = 2*ones(Int, d)
 			if K ≠ 0

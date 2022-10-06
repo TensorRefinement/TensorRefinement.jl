@@ -14,8 +14,8 @@ function trigevalmask(t::Vector{T}, ν::Vector{T}) where {T<:AbstractFloat}
 	V = zeros(T, n, 2*r)
 	for α ∈ 1:r
 		for i ∈ 1:n
-			V[i,2*α-1] = cos(π*ν[α]*t[i])
-			V[i,2*α  ] = sin(π*ν[α]*t[i])
+			V[i,2*α-1] = cospi(ν[α]*t[i])
+			V[i,2*α  ] = sinpi(ν[α]*t[i])
 		end
 	end
 	return V
@@ -33,7 +33,7 @@ function trigeval(t::Vector{T}, ν::Vector{T}, c::Vector{T}) where {T<:AbstractF
 	u = zeros(T, length(t))
 	for i ∈ 1:n
 		for α ∈ 1:r
-			u[i] += c[2*α-1]*cos(π*ν[α]*t[i])+c[2*α]*sin(π*ν[α]*t[i])
+			u[i] += c[2*α-1]*cospi(ν[α]*t[i])+c[2*α]*sinpi(ν[α]*t[i])
 		end
 	end
 	return u
@@ -46,10 +46,11 @@ function trigrefmask(η::T, ν::Vector{T}) where {T<:AbstractFloat}
 	end
 	W = zeros(T, 2*r, 2*r)
 	for α ∈ 1:r
-		W[2*α-1,2*α-1] =  cos(π*ν[α]*η)
-		W[2*α,  2*α-1] = -sin(π*ν[α]*η)
-		W[2*α-1,2*α  ] =  sin(π*ν[α]*η)
-		W[2*α,  2*α  ] =  cos(π*ν[α]*η)
+		s,c = sincospi(ν[α]*η)
+		W[2*α-1,2*α-1] =  c
+		W[2*α,  2*α-1] = -s
+		W[2*α-1,2*α  ] =  s
+		W[2*α,  2*α  ] =  c
 	end
 	return W
 end
