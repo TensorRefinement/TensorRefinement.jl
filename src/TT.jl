@@ -855,13 +855,13 @@ function svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aT
 		if λ == 1
 			ε₁ = [aTol[λ],aTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]; ε₁ = isempty(ε₁) ? 0.0 : minimum(ε₁)
 			δ₁ = [rTol[λ],rTolDistr[λ]]; δ₁ = δ₁[δ₁ .> 0]; δ₁ = isempty(δ₁) ? 0.0 : minimum(δ₁)
-			U,V,ε[1],δ[1],μ,ρ[1],σ[1] = factorsvd!(F, n[:,λ], :; aTol=ε₁, rTol=δ₁, rank=maxrank[λ], rev=(path == "backward"), major=major)
+			U,V,ε[1],δ[1],μ,ρ[1],σ[1] = factorsvd!(F, n[:,λ], :; atol=ε₁, rtol=δ₁, rank=maxrank[λ], rev=(path == "backward"), major=major)
 		else
 			(aTolDistr[λ] > 0) && (aTolDistr[λ] = sqrt(aTolDistr[λ]^2+aTolAcc^2); aTolAcc = 0.0)
 			(rTolDistr[λ] > 0) && (rTolDistr[λ] = sqrt(rTolDistr[λ]^2+rTolAcc^2); rTolAcc = 0.0)
 			ε₁ = [aTol[λ],aTolDistr[λ],μ*rTol[λ],μ*rTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]
 			ε₁ = isempty(ε₁) ? 0.0 : minimum(ε₁)
-			U,V,ε[λ],_,_,ρ[λ],σ[λ] = factorsvd!(F, n[:,λ], :; aTol=ε₁, rank=maxrank[λ], rev=(path == "backward"), major=major)
+			U,V,ε[λ],_,_,ρ[λ],σ[λ] = factorsvd!(F, n[:,λ], :; atol=ε₁, rank=maxrank[λ], rev=(path == "backward"), major=major)
 			δ[λ] = (μ > 0) ? ε[λ]/μ : 0.0
 		end
 		setfactor!(W, U, Λ[λ])
