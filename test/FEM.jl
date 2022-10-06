@@ -137,7 +137,7 @@ end
 end
 
 @testset "diffextdn" begin
-	@testset "d = $d, ℓ = $ℓ, L = $L" for (d,ℓ,L) ∈ ((1,0,7),(1,1,7),(1,3,7),(1,7,7),(2,3,5),(3,2,4))
+	@testset "d = $d, ℓ = $ℓ, L = $L" for (d,ℓ,L) ∈ ((1,0,7),(1,1,7),(1,3,7),(1,7,7),(2,3,5),(3,1,3),(3,2,3))
 		@testset "K = $K" for K ∈ 0:d
 			n = 2*ones(Int, d)
 			if K ≠ 0
@@ -150,7 +150,7 @@ end
 			MPf = block(MP, 1, 1; major="first")
 			MPf = reshape(MPf, 2^(d*L)*prod(n), 2^(d*ℓ))
 			MP0f = refdiffdn(L, d, K)*refextdn(L, ℓ, d)
-			@test MPf ≈ MP0f rtol=1e-12
+			@test MPf ≈ MP0f rtol=1e-14
 		end
 	end
 end
