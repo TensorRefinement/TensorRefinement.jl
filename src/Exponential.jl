@@ -46,10 +46,13 @@ function trigrefmask(η::T, ν::Vector{T}) where {T<:AbstractFloat}
 	end
 	W = zeros(T, 2*r, 2*r)
 	for α ∈ 1:r
-		W[2*α-1,2*α-1] =  cos(π*ν[α]*η)
-		W[2*α,  2*α-1] = -sin(π*ν[α]*η)
-		W[2*α-1,2*α  ] =  sin(π*ν[α]*η)
-		W[2*α,  2*α  ] =  cos(π*ν[α]*η)
+		# TODO: switch to sincospi (requires Julia ≥1.6)
+		# s,c = sincospi(ν[α]*η)
+		s,c = sin(π*ν[α]*η),cos(π*ν[α]*η)
+		W[2*α-1,2*α-1] =  c
+		W[2*α,  2*α-1] = -s
+		W[2*α-1,2*α  ] =  s
+		W[2*α,  2*α  ] =  c
 	end
 	return W
 end

@@ -150,7 +150,7 @@ end
 			MPf = block(MP, 1, 1; major="first")
 			MPf = reshape(MPf, 2^(d*L)*prod(n), 2^(d*ℓ))
 			MP0f = refdiffdn(L, d, K)*refextdn(L, ℓ, d)
-			@test MPf ≈ MP0f rtol=1e-14
+			@test MPf ≈ MP0f rtol=1e-12
 		end
 	end
 end
