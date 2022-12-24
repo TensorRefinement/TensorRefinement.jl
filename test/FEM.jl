@@ -72,10 +72,13 @@ function refbpxdn(L::Int, d::Int)
 	return C
 end
 
+###
+T = Float64
+###
 
 @testset "extdn" begin
 	@testset "d = $d, ℓ = $ℓ, L = $L" for (d,L,ℓ) ∈ ((1,7,0),(1,7,4),(1,7,7),(2,5,0),(2,5,3),(2,5,5),(3,4,0),(3,4,3),(3,4,4))
-		P = FEM.extdn(L, ℓ, d; major="first")
+		P = FEM.extdn(T, L, ℓ, d; major="first")
 		P = [ [ reshape(P[k], size(P[k], 1), 2*ones(Int, 2*d)..., size(P[k], 4)) for k ∈ 1:ℓ ]...,
 			  [ reshape(P[k], size(P[k], 1), 2*ones(Int, d)..., ones(Int, d)..., size(P[k], 4)) for k ∈ ℓ+1:L ]... ]
 		Pf = block(P, 1, 1; major="first")
@@ -92,7 +95,7 @@ end
 			if K ≠ 0
 				n[K] = 1
 			end
-			M = FEM.diffdn(ℓ, d, K; major="first")
+			M = FEM.diffdn(T, ℓ, d, K; major="first")
 			M = [ [ reshape(M[k], size(M[k], 1), 2*ones(Int, 2*d)..., size(M[k], 4)) for k ∈ 1:ℓ ]...,
 				  reshape(M[ℓ+1], size(M[ℓ+1], 1), n..., ones(Int, d)..., size(M[ℓ+1], 4)) ]
 			Mf = block(M, 1, 1; major="first")
@@ -114,7 +117,7 @@ end
 			if K2 ≠ 0
 				n2[K2] = 1
 			end
-			Λ = FEM.intdn(ℓ, d, K1, K2; major="first")
+			Λ = FEM.intdn(T, ℓ, d, K1, K2; major="first")
 			Λ = [ [ reshape(Λ[k], size(Λ[k], 1), 2*ones(Int, 2*d)..., size(Λ[k], 4)) for k ∈ 1:ℓ ]...,
 				  reshape(Λ[ℓ+1], size(Λ[ℓ+1], 1), n1..., n2..., size(Λ[ℓ+1], 4)) ]
 			Λf = block(Λ, 1, 1; major="first")
@@ -127,7 +130,7 @@ end
 
 @testset "bpxdn" begin
 	@testset "d = $d, ℓ = $ℓ" for (d,ℓ) ∈ ((1,7),(2,5),(3,4))
-		C = FEM.bpxdn(ℓ, d; major="first")
+		C = FEM.bpxdn(T, ℓ, d; major="first")
 		C = [ reshape(C[k], size(C[k], 1), 2*ones(Int, 2*d)..., size(C[k], 4)) for k ∈ 1:ℓ ]
 		Cf = block(C, 1, 1; major="first")
 		Cf = reshape(Cf, 2^(d*ℓ), 2^(d*ℓ))
@@ -143,7 +146,7 @@ end
 			if K ≠ 0
 				n[K] = 1
 			end
-			MP = FEM.diffextdn(L, ℓ, d, K; major="first")
+			MP = FEM.diffextdn(T, L, ℓ, d, K; major="first")
 			MP = [ [ reshape(MP[k], size(MP[k], 1), 2*ones(Int, 2*d)..., size(MP[k], 4)) for k ∈ 1:ℓ ]...,
 				   [ reshape(MP[k], size(MP[k], 1), 2*ones(Int, d)..., ones(Int, d)..., size(MP[k], 4)) for k ∈ ℓ+1:L ]...,
 				  reshape(MP[L+1], size(MP[L+1], 1), n..., ones(Int, d)..., size(MP[L+1], 4)) ]
@@ -162,7 +165,7 @@ end
 			if K ≠ 0
 				n[K] = 1
 			end
-			Q = FEM.diffbpxdn(ℓ, d, K; major="first")
+			Q = FEM.diffbpxdn(T, ℓ, d, K; major="first")
 			Q = [ [ reshape(Q[k], size(Q[k], 1), 2*ones(Int, 2*d)..., size(Q[k], 4)) for k ∈ 1:ℓ ]...,
 				  reshape(Q[ℓ+1], size(Q[ℓ+1], 1), n..., ones(Int, d)..., size(Q[ℓ+1], 4)) ]
 			Qf = block(Q, 1, 1; major="first")
@@ -179,21 +182,21 @@ end
 @testset "stiffness and mass matrices" begin
 	@testset "d = 1, ℓ = $ℓ" for ℓ ∈ (1,8,9)
 		d = 1
-		M0 = FEM.diffdn(ℓ, d, 0; major="first")
-		Λ0 = FEM.intdn(ℓ, d, 0, 0; major="first")
+		M0 = FEM.diffdn(T, ℓ, d, 0; major="first")
+		Λ0 = FEM.intdn(T, ℓ, d, 0, 0; major="first")
 		M = decmp(M0, 1, decmp(Λ0, 2, M0, 1), 1)
 		decskp!(M, ℓ+1; path="backward")
 		Mf = block(M, 1, 1; major="first")
 
-		M1 = FEM.diffdn(ℓ, d, 1; major="first")
-		Λ1 = FEM.intdn(ℓ, d, 1, 1; major="first")
+		M1 = FEM.diffdn(T, ℓ, d, 1; major="first")
+		Λ1 = FEM.intdn(T, ℓ, d, 1, 1; major="first")
 		S = decmp(M1, 1, decmp(Λ1, 2, M1, 1), 1)
 		decskp!(S, ℓ+1; path="backward")
 		Sf = block(S, 1, 1; major="first")
 
 		n = 2^ℓ
-		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(Float64, n-1), -1 => -ones(Float64, n-1), 0 => [2*ones(Float64, n-1); 1])
-		Mf0 = diagm(1 => 1/6*ones(Float64, n-1), -1 => 1/6*ones(Float64, n-1), 0 => 1/3*[2*ones(Float64, n-1); 1])
+		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(T, n-1), -1 => -ones(T, n-1), 0 => [2*ones(T, n-1); 1])
+		Mf0 = diagm(1 => 1/6*ones(T, n-1), -1 => 1/6*ones(T, n-1), 0 => 1/3*[2*ones(T, n-1); 1])
 		@testset "mass matrix" begin
 			@test Mf ≈ Mf0 rtol=1e-14
 		end
@@ -203,18 +206,18 @@ end
 	end
 	@testset "d = 2, ℓ = $ℓ" for ℓ ∈ (1,4,5)
 		d = 2
-		M0 = FEM.diffdn(ℓ, d, 0; major="first")
-		Λ0 = FEM.intdn(ℓ, d, 0, 0; major="first")
+		M0 = FEM.diffdn(T, ℓ, d, 0; major="first")
+		Λ0 = FEM.intdn(T, ℓ, d, 0, 0; major="first")
 		M = decmp(M0, 1, decmp(Λ0, 2, M0, 1), 1)
 		decskp!(M, ℓ+1; path="backward")
 		M = [ reshape(M[k], size(M[k], 1), 2*ones(Int, 2*d)..., size(M[k], 4)) for k ∈ 1:ℓ ]
 		Mf = block(M, 1, 1; major="first")
 		Mf = reshape(Mf, 2^(d*ℓ), 2^(d*ℓ))
 
-		M1 = FEM.diffdn(ℓ, d, 1; major="first")
-		Λ1 = FEM.intdn(ℓ, d, 1, 1; major="first")
-		M2 = FEM.diffdn(ℓ, d, 2; major="first")
-		Λ2 = FEM.intdn(ℓ, d, 2, 2; major="first")
+		M1 = FEM.diffdn(T, ℓ, d, 1; major="first")
+		Λ1 = FEM.intdn(T, ℓ, d, 1, 1; major="first")
+		M2 = FEM.diffdn(T, ℓ, d, 2; major="first")
+		Λ2 = FEM.intdn(T, ℓ, d, 2, 2; major="first")
 		S1 = decmp(M1, 1, decmp(Λ1, 2, M1, 1), 1)
 		decskp!(S1, ℓ+1; path="backward")
 		S2 = decmp(M2, 1, decmp(Λ2, 2, M2, 1), 1)
@@ -234,8 +237,8 @@ end
 		Sf = reshape(Sf, 2^(d*ℓ), 2^(d*ℓ))
 
 		n = 2^ℓ
-		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(Float64, n-1), -1 => -ones(Float64, n-1), 0 => [2*ones(Float64, n-1); 1])
-		Mf0 = diagm(1 => 1/6*ones(Float64, n-1), -1 => 1/6*ones(Float64, n-1), 0 => 1/3*[2*ones(Float64, n-1); 1])
+		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(T, n-1), -1 => -ones(T, n-1), 0 => [2*ones(T, n-1); 1])
+		Mf0 = diagm(1 => 1/6*ones(T, n-1), -1 => 1/6*ones(T, n-1), 0 => 1/3*[2*ones(T, n-1); 1])
 		S1f0 = kron(Mf0, Sf0)
 		S2f0 = kron(Sf0, Mf0)
 		Mf0 = kron(Mf0, Mf0)
@@ -254,22 +257,22 @@ end
 @testset "preconditioned stiffness and mass matrices" begin
 	@testset "d = 1, ℓ = $ℓ" for ℓ ∈ (1,8,9)
 		d = 1
-		M0 = FEM.diffbpxdn(ℓ, d, 0; major="first")
-		Λ0 = FEM.intdn(ℓ, d, 0, 0; major="first")
+		M0 = FEM.diffbpxdn(T, ℓ, d, 0; major="first")
+		Λ0 = FEM.intdn(T, ℓ, d, 0, 0; major="first")
 		M = decmp(M0, 1, decmp(Λ0, 2, M0, 1), 1)
 		decskp!(M, ℓ+1; path="backward")
 		Mf = block(M, 1, 1; major="first")
 
-		M1 = FEM.diffbpxdn(ℓ, d, 1; major="first")
-		Λ1 = FEM.intdn(ℓ, d, 1, 1; major="first")
+		M1 = FEM.diffbpxdn(T, ℓ, d, 1; major="first")
+		Λ1 = FEM.intdn(T, ℓ, d, 1, 1; major="first")
 		S = decmp(M1, 1, decmp(Λ1, 2, M1, 1), 1)
 		decskp!(S, ℓ+1; path="backward")
 		Sf = block(S, 1, 1; major="first")
 
 		n = 2^ℓ
 		C0f = refbpxdn(ℓ, d)
-		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(Float64, n-1), -1 => -ones(Float64, n-1), 0 => [2*ones(Float64, n-1); 1])
-		Mf0 = diagm(1 => 1/6*ones(Float64, n-1), -1 => 1/6*ones(Float64, n-1), 0 => 1/3*[2*ones(Float64, n-1); 1])
+		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(T, n-1), -1 => -ones(T, n-1), 0 => [2*ones(T, n-1); 1])
+		Mf0 = diagm(1 => 1/6*ones(T, n-1), -1 => 1/6*ones(T, n-1), 0 => 1/3*[2*ones(T, n-1); 1])
 		Mf0 = C0f*Mf0*C0f
 		Sf0 = C0f*Sf0*C0f
 		@testset "mass matrix" begin
@@ -281,18 +284,18 @@ end
 	end
 	@testset "d = 2, ℓ = $ℓ" for ℓ ∈ (1,3,4)
 		d = 2
-		M0 = FEM.diffbpxdn(ℓ, d, 0; major="first")
-		Λ0 = FEM.intdn(ℓ, d, 0, 0; major="first")
+		M0 = FEM.diffbpxdn(T, ℓ, d, 0; major="first")
+		Λ0 = FEM.intdn(T, ℓ, d, 0, 0; major="first")
 		M = decmp(M0, 1, decmp(Λ0, 2, M0, 1), 1)
 		decskp!(M, ℓ+1; path="backward")
 		M = [ reshape(M[k], size(M[k], 1), 2*ones(Int, 2*d)..., size(M[k], 4)) for k ∈ 1:ℓ ]
 		Mf = block(M, 1, 1; major="first")
 		Mf = reshape(Mf, 2^(d*ℓ), 2^(d*ℓ))
 
-		M1 = FEM.diffbpxdn(ℓ, d, 1; major="first")
-		Λ1 = FEM.intdn(ℓ, d, 1, 1; major="first")
-		M2 = FEM.diffbpxdn(ℓ, d, 2; major="first")
-		Λ2 = FEM.intdn(ℓ, d, 2, 2; major="first")
+		M1 = FEM.diffbpxdn(T, ℓ, d, 1; major="first")
+		Λ1 = FEM.intdn(T, ℓ, d, 1, 1; major="first")
+		M2 = FEM.diffbpxdn(T, ℓ, d, 2; major="first")
+		Λ2 = FEM.intdn(T, ℓ, d, 2, 2; major="first")
 		S1 = decmp(M1, 1, decmp(Λ1, 2, M1, 1), 1)
 		decskp!(S1, ℓ+1; path="backward")
 		S2 = decmp(M2, 1, decmp(Λ2, 2, M2, 1), 1)
@@ -313,8 +316,8 @@ end
 
 		n = 2^ℓ
 		C0f = refbpxdn(ℓ, d)
-		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(Float64, n-1), -1 => -ones(Float64, n-1), 0 => [2*ones(Float64, n-1); 1])
-		Mf0 = diagm(1 => 1/6*ones(Float64, n-1), -1 => 1/6*ones(Float64, n-1), 0 => 1/3*[2*ones(Float64, n-1); 1])
+		Sf0 = 2^(2*ℓ) * diagm(1 => -ones(T, n-1), -1 => -ones(T, n-1), 0 => [2*ones(T, n-1); 1])
+		Mf0 = diagm(1 => 1/6*ones(T, n-1), -1 => 1/6*ones(T, n-1), 0 => 1/3*[2*ones(T, n-1); 1])
 		S1f0 = C0f*kron(Mf0, Sf0)*C0f
 		S2f0 = C0f*kron(Sf0, Mf0)*C0f
 		Mf0 = C0f*kron(Mf0, Mf0)*C0f

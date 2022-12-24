@@ -1,7 +1,7 @@
 name = "TensorRefinement"
 uuid = "a3b9d4e2-d0bd-4e25-82d9-b4a73f42a39d"
 authors = ["TensorRefinement contributors <trt.mathematik@univie.ac.at>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -10,7 +10,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
 Reexport = "0.2, 1.0"
-julia = "1"
+julia = "1.7"
 
 [extras]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"

@@ -670,7 +670,7 @@ function decskp(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last")
 	for λ ∈ 2:M
 		U = factorcontract(W[Λ[λ]], U; major=major)
 	end
-	return W
+	return U
 end
 
 decskp(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N} = decskp(W, :; path=path, major=major)
