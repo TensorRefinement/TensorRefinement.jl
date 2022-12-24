@@ -618,7 +618,7 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 		else
 			U = reshape(U, p, prod(n)*q)
 			U = permutedims(U) # reallocation
-			fact = qr!(U, Val(true))
+			fact = qr!(U, ColumnNorm())
 			π = invperm(fact.p)
 			R = permutedims(fact.R[:,π])
 			ρ = size(R, 2)
@@ -640,7 +640,7 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 			end
 		else
 			U = reshape(U, p*prod(n), q)
-			fact = qr!(U, Val(true))
+			fact = qr!(U, ColumnNorm())
 			π = invperm(fact.p)
 			R = fact.R[:,π]
 			ρ = size(R, 1)
