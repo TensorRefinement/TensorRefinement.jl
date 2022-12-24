@@ -7,7 +7,7 @@ export indvec, threshold, compfloateps, modemul
 export qraddcols!, qraddcols, lqaddrows
 
 
-const Indices = Union{Vector{Int},Int,UnitRange{Int},StepRange{Int,K} where K,NTuple{M,Int} where M,Vector{Any},Nothing,Colon}
+const Indices = Union{Vector{Int},Int,UnitRange{Int},StepRange{Int},NTuple{M,Int} where M,Vector{Any},Nothing,Colon}
 const FloatRC{T} = Union{T,Complex{T}} where T<:AbstractFloat
 const Float2{T} = Union{T,Vector{T}} where T<:AbstractFloat
 const Float3{T} = Union{T,Vector{T},Vector{Vector{T}}} where T<:AbstractFloat
