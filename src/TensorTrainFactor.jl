@@ -730,12 +730,15 @@ rank=0 leads to no rank thresholding
 function factorsvd!(W::Factor{T,N},
                     m::Union{FactorSize,Colon},
                     n::Union{FactorSize,Colon};
-					threshold::S=zero(S),
+					soft::S=zero(S),
+					hard::S=zero(S),
                     atol::S=zero(S),
                     rtol::S=zero(S),
                     rank::Int=0,
                     major::String="last",
-					rev::Bool=false) where {S<:AbstractFloat,T<:FloatRC{S},N}
+					rev::Bool=false,
+					fsvd! = (W -> svd!(W; full=false, alg=LinearAlgebra.QRIteration()))
+					) where {S<:AbstractFloat,T<:FloatRC{S},N}
 	d = factorndims(W)
 	k = factorsize(W)
 	if isa(m, Colon) && isa(n, Colon)
@@ -774,16 +777,28 @@ function factorsvd!(W::Factor{T,N},
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
 	end
 	#
-	if threshold < 0 || !isfinite(threshold)
-		throw(ArgumentError("threshold, when specified, should be nonnegative and finite"))
+	if soft < 0 || !isfinite(soft)
+		throw(ArgumentError("soft, when specified, should be nonnegative and finite"))
 	end
 	#
-	threshold² = threshold^2
-	if !isfinite(threshold²)
-		throw(ErrorException("overflow encountered while squaring threshold, which was passed finite"))
+	soft² = soft^2
+	if !isfinite(soft²)
+		throw(ErrorException("overflow encountered while squaring soft, which was passed finite"))
 	end
-	if threshold > 0 && threshold² == 0
-		throw(ErrorException("underflow encountered while squaring threshold, which was passed positive"))
+	if soft > 0 && soft² == 0
+		throw(ErrorException("underflow encountered while squaring soft, which was passed positive"))
+	end
+	#
+	if hard < 0 || !isfinite(hard)
+		throw(ArgumentError("hard, when specified, should be nonnegative and finite"))
+	end
+	#
+	hard² = hard^2
+	if !isfinite(hard²)
+		throw(ErrorException("overflow encountered while squaring hard, which was passed finite"))
+	end
+	if hard > 0 && hard² == 0
+		throw(ErrorException("underflow encountered while squaring hard, which was passed positive"))
 	end
 	#
 	if atol < 0 || !isfinite(atol)
@@ -805,7 +820,6 @@ function factorsvd!(W::Factor{T,N},
 	if rank < 0
 		throw(ArgumentError("the optional argument rank should be nonnegative"))
 	end
-	ρ = rank
 	#
 	p,q = factorranks(W); prm = collect(1:d)
 	k = rev ? [n; m] : [m; n]
@@ -821,7 +835,7 @@ function factorsvd!(W::Factor{T,N},
 		V = zeros(T, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
 	else
-		fact = svd!(W; full=false, alg=LinearAlgebra.QRIteration())
+		fact = fsvd!(W)
 		U = fact.U
 		σ = fact.S
 		V = fact.Vt
@@ -840,9 +854,10 @@ function factorsvd!(W::Factor{T,N},
 		end
 		tol² = [atol²,tol²]; ind = (tol² .> 0)
 		tol² = any(ind) ? minimum(tol²[ind]) : zero(S)
-		ε²,ρ = Auxiliary.threshold(σ.^2, threshold², tol², ρ); ε = sqrt(ε²); δ = ε/μ
+		σσ,ε,ρ = Auxiliary.threshold(σ, soft, hard, tol, rank)
+		δ = ε/μ
 		U = U[:,1:ρ]; V = V[1:ρ,:]
-		rev ? U = U*Diagonal(σ[1:ρ]) : V = Diagonal(σ[1:ρ])*V
+		rev ? U = U*Diagonal(σσ) : V = Diagonal(σσ)*V
 		U = reshape(U, p, k[1:d]..., ρ)
 		V = reshape(V, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
