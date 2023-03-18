@@ -580,14 +580,14 @@ function factorproject!(V::Factor{T,N}, U::Factor{T,N}, W::Factor{T,N}; rev::Boo
 	V
 end
 
-function factorqr!(U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
+function factorqr!(U::Factor{T,N}; rev::Bool=false, factf=(rev ? A -> LinearAlgebra.lq!(A) : A -> LinearAlgebra.qr!(A))) where {T<:FloatRC,N}
 	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
 	if rev
 		if p == 0 || q == 0
 			R,U = zeros(T, p, m..., 0),zeros(T, 0, n..., q)
 		else
 			U = reshape(U, p, prod(n)*q)
-			R,U = lq!(U); R,U = Matrix(R),Matrix(U)
+			R,U = factf(U); R,U = Matrix(R),Matrix(U)
 			ρ = size(R, 2)
 			R,U = reshape(R, p, m..., ρ),reshape(U, ρ, n..., q)
 		end
@@ -596,7 +596,7 @@ function factorqr!(U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
 			U,R = zeros(T, p, n..., 0),zeros(T, 0, m..., q)
 		else
 			U = reshape(U, p*prod(n), q)
-			U,R = qr!(U); U,R = Matrix(U),Matrix(R)
+			U,R = factf(U); U,R = Matrix(U),Matrix(R)
 			ρ = size(R, 1)
 			U,R = reshape(U, p, n..., ρ),reshape(R, ρ, m..., q)
 		end
@@ -606,7 +606,8 @@ end
 
 factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N} = factorqr!(U;  rev=rev)
 
-function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=false) where {T<:FloatRC,N}
+function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=false,
+	               factf=(A -> LinearAlgebra.qr!(A, LinearAlgebra.ColumnNorm()))) where {T<:FloatRC,N}
 	# when returnS==true, a factor S satisfying A ⨝ S = Q if rev==false and S ⨝ A = Q if rev==true is returned
 	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
 	if rev
@@ -618,7 +619,7 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 		else
 			U = reshape(U, p, prod(n)*q)
 			U = permutedims(U) # reallocation
-			fact = qr!(U, ColumnNorm())
+			fact = factf(U)
 			π = invperm(fact.p)
 			R = permutedims(fact.R[:,π])
 			ρ = size(R, 2)
@@ -640,7 +641,7 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 			end
 		else
 			U = reshape(U, p*prod(n), q)
-			fact = qr!(U, ColumnNorm())
+			fact = factf(U)
 			π = invperm(fact.p)
 			R = fact.R[:,π]
 			ρ = size(R, 1)
@@ -730,12 +731,14 @@ rank=0 leads to no rank thresholding
 function factorsvd!(W::Factor{T,N},
                     m::Union{FactorSize,Colon},
                     n::Union{FactorSize,Colon};
-					threshold::S=zero(S),
+					soft::S=zero(S),
+					hard::S=zero(S),
                     atol::S=zero(S),
                     rtol::S=zero(S),
                     rank::Int=0,
                     major::String="last",
-					rev::Bool=false) where {S<:AbstractFloat,T<:FloatRC{S},N}
+					rev::Bool=false,
+					factf=(A -> LinearAlgebra.svd!(A; full=false, alg=LinearAlgebra.QRIteration())) ) where {S<:AbstractFloat,T<:FloatRC{S},N}
 	d = factorndims(W)
 	k = factorsize(W)
 	if isa(m, Colon) && isa(n, Colon)
@@ -774,16 +777,28 @@ function factorsvd!(W::Factor{T,N},
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
 	end
 	#
-	if threshold < 0 || !isfinite(threshold)
-		throw(ArgumentError("threshold, when specified, should be nonnegative and finite"))
+	if soft < 0 || !isfinite(soft)
+		throw(ArgumentError("soft, when specified, should be nonnegative and finite"))
 	end
 	#
-	threshold² = threshold^2
-	if !isfinite(threshold²)
-		throw(ErrorException("overflow encountered while squaring threshold, which was passed finite"))
+	soft² = soft^2
+	if !isfinite(soft²)
+		throw(ErrorException("overflow encountered while squaring soft, which was passed finite"))
 	end
-	if threshold > 0 && threshold² == 0
-		throw(ErrorException("underflow encountered while squaring threshold, which was passed positive"))
+	if soft > 0 && soft² == 0
+		throw(ErrorException("underflow encountered while squaring soft, which was passed positive"))
+	end
+	#
+	if hard < 0 || !isfinite(hard)
+		throw(ArgumentError("hard, when specified, should be nonnegative and finite"))
+	end
+	#
+	hard² = hard^2
+	if !isfinite(hard²)
+		throw(ErrorException("overflow encountered while squaring hard, which was passed finite"))
+	end
+	if hard > 0 && hard² == 0
+		throw(ErrorException("underflow encountered while squaring hard, which was passed positive"))
 	end
 	#
 	if atol < 0 || !isfinite(atol)
@@ -805,7 +820,6 @@ function factorsvd!(W::Factor{T,N},
 	if rank < 0
 		throw(ArgumentError("the optional argument rank should be nonnegative"))
 	end
-	ρ = rank
 	#
 	p,q = factorranks(W); prm = collect(1:d)
 	k = rev ? [n; m] : [m; n]
@@ -821,7 +835,7 @@ function factorsvd!(W::Factor{T,N},
 		V = zeros(T, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
 	else
-		fact = svd!(W; full=false, alg=LinearAlgebra.QRIteration())
+		fact = factf(W)
 		U = fact.U
 		σ = fact.S
 		V = fact.Vt
@@ -840,9 +854,10 @@ function factorsvd!(W::Factor{T,N},
 		end
 		tol² = [atol²,tol²]; ind = (tol² .> 0)
 		tol² = any(ind) ? minimum(tol²[ind]) : zero(S)
-		ε²,ρ = Auxiliary.threshold(σ.^2, threshold², tol², ρ); ε = sqrt(ε²); δ = ε/μ
+		σσ,ε,ρ = Auxiliary.threshold(σ, soft, hard, tol, rank)
+		δ = ε/μ
 		U = U[:,1:ρ]; V = V[1:ρ,:]
-		rev ? U = U*Diagonal(σ[1:ρ]) : V = Diagonal(σ[1:ρ])*V
+		rev ? U = U*Diagonal(σσ) : V = Diagonal(σσ)*V
 		U = reshape(U, p, k[1:d]..., ρ)
 		V = reshape(V, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
