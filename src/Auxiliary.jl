@@ -30,44 +30,71 @@ function indvec(σ::Indices; min::Int=1, max::Int=0)
 	isa(σ, Nothing) && return Vector{Int}(undef, 0)
 end
 
-function threshold(δ::Vector{T}, τ::T, ε::T, r::Int) where {T<:Real}
+function threshold(c::Vector{T}, τsoft::T, τhard::T, τ::T, r::Int) where {T<:Real}
+	if τsoft < 0
+		throw(ArgumentError("τsoft is required to be nonnegative"))
+	end
+	if τhard < 0
+		throw(ArgumentError("τhard is required to be nonnegative"))
+	end
 	if τ < 0
 		throw(ArgumentError("τ is required to be nonnegative"))
-	end
-	if ε < 0
-		throw(ArgumentError("ε is required to be nonnegative"))
 	end
 	if r < 0
 		throw(ArgumentError("r is required to be nonnegative"))
 	end
-	n = length(δ)
-	σ,ρ = zero(T),n
+	n = length(c)
+	ε = zero(T)
+	ρ = n
 	if n > 0
-		if r > 0
-			ρ = min(r, ρ)
-		end
-		if τ > 0
-			k = findlast(x -> x > τ, δ)
-			if isa(k, Int)
-				ρ = min(k, ρ)::Int
-			else
-				ρ = 0
+		@inbounds begin
+			τ² = τ^2
+			soft = τsoft > 0
+			hard = τhard > 0
+			tol = τ > 0
+			if 0 < r < n
+				for k ∈ n:-1:r+1
+					ε += c[k]^2
+				end
+				ρ = r
+			end
+			for k ∈ ρ:-1:1
+				s = ε+c[k]^2
+				if tol
+					if s ≤ τ²
+						ε = s; ρ = k-1
+						continue
+					else
+						tol = false
+					end
+				end
+				if hard
+					if c[k] ≤ τhard
+						ε = s; ρ = k-1
+						continue
+					else
+						hard = false
+					end
+				end
+				if soft
+					if c[k] ≤ τsoft
+						ε = s; ρ = k-1
+						continue
+					else
+						ε += k*τsoft^2
+						soft = false
+						break
+					end
+				end
 			end
 		end
-		if ε > 0
-			δ = cumsum(reverse(δ))
-			k = findlast(x -> x ≤ ε, δ)
-			if isa(k, Int)
-				ρ = min(n-k, ρ)::Int
-			end
-			if ρ < n
-				σ = δ[n-ρ]
-			end
-			return σ,ρ
+		c = c[1:ρ]
+		if τsoft > 0
+			c .-= τsoft
 		end
-		σ = sum(δ[ρ+1:n])
+		ε = sqrt(ε)
 	end
-	σ,ρ
+	c,ε,ρ
 end
 
 

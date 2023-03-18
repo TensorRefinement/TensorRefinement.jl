@@ -911,7 +911,7 @@ end
 decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path, returnRfactors=returnRfactors)
 
 
-function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", threshold::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=v, rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
+function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2{S}=zero(S), hard::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=v, rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
 	# assumes that the decomposition is orthogonal
 	L = declength(W); decrank(W)
 	if L == 0
@@ -960,13 +960,22 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	end
 	K = length(Λ)
 	#
-	if any(threshold .< 0)
-		throw(ArgumentError("threshold should be a nonnegative Float or a vector of such"))
+	if any(soft .< 0)
+		throw(ArgumentError("soft should be a nonnegative Float or a vector of such"))
 	end
-	if isa(threshold, S)
-		threshold = threshold*ones(S, K)
-	elseif length(threshold) ≠ K
-		throw(ArgumentError("threshold, passed as a vector, has incorrect length"))
+	if isa(soft, S)
+		soft = soft*ones(S, K)
+	elseif length(soft) ≠ K
+		throw(ArgumentError("soft, passed as a vector, has incorrect length"))
+	end
+
+	if any(hard .< 0)
+		throw(ArgumentError("hard should be a nonnegative Float or a vector of such"))
+	end
+	if isa(hard, S)
+		hard = hard*ones(S, K)
+	elseif length(hard) ≠ K
+		throw(ArgumentError("hard, passed as a vector, has incorrect length"))
 	end
 
 	if any(aTol .< 0)
@@ -1027,13 +1036,13 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 		if λ == 1
 			ε₁ = [aTol[λ],aTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]; ε₁ = isempty(ε₁) ? zero(S) : minimum(ε₁)
 			δ₁ = [rTol[λ],rTolDistr[λ]]; δ₁ = δ₁[δ₁ .> 0]; δ₁ = isempty(δ₁) ? zero(S) : minimum(δ₁)
-			U,V,ε[1],δ[1],μ,ρ[1],σ[1] = factorsvd!(W[ℓ], n[:,λ], :; threshold=threshold[λ], atol=ε₁, rtol=δ₁, rank=rank[λ], rev=(path == "backward"), major=major)
+			U,V,ε[1],δ[1],μ,ρ[1],σ[1] = factorsvd!(W[ℓ], n[:,λ], :; soft=soft[λ], hard=hard[λ], atol=ε₁, rtol=δ₁, rank=rank[λ], rev=(path == "backward"), major=major)
 		else
 			(aTolDistr[λ] > 0) && (aTolDistr[λ] = sqrt(aTolDistr[λ]^2+aTolAcc^2); aTolAcc = zero(S))
 			(rTolDistr[λ] > 0) && (rTolDistr[λ] = sqrt(rTolDistr[λ]^2+rTolAcc^2); rTolAcc = zero(S))
 			ε₁ = [aTol[λ],aTolDistr[λ],μ*rTol[λ],μ*rTolDistr[λ]]; ε₁ = ε₁[ε₁ .> 0]
 			ε₁ = isempty(ε₁) ? zero(S) : minimum(ε₁)
-			U,V,ε[λ],_,_,ρ[λ],σ[λ] = factorsvd!(W[ℓ], n[:,λ], :; threshold=threshold[λ], atol=ε₁, rank=rank[λ], rev=(path == "backward"), major=major)
+			U,V,ε[λ],_,_,ρ[λ],σ[λ] = factorsvd!(W[ℓ], n[:,λ], :; soft=soft[λ], hard=hard[λ], atol=ε₁, rank=rank[λ], rev=(path == "backward"), major=major)
 			δ[λ] = (μ > 0) ? ε[λ]/μ : zero(S)
 		end
 		W[ℓ] = U
@@ -1048,6 +1057,6 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	return W,ε,δ,μ,ρ,σ
 end
 
-decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", threshold::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, threshold=threshold, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", hard::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
 
-decsvd!(W::Dec{T,N}; path::String="", threshold::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, threshold=threshold, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}; path::String="", hard::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
