@@ -580,14 +580,14 @@ function factorproject!(V::Factor{T,N}, U::Factor{T,N}, W::Factor{T,N}; rev::Boo
 	V
 end
 
-function factorqr!(U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
+function factorqr!(U::Factor{T,N}; rev::Bool=false, factf=(rev ? A -> LinearAlgebra.lq!(A) : A -> LinearAlgebra.qr!(A))) where {T<:FloatRC,N}
 	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
 	if rev
 		if p == 0 || q == 0
 			R,U = zeros(T, p, m..., 0),zeros(T, 0, n..., q)
 		else
 			U = reshape(U, p, prod(n)*q)
-			R,U = lq!(U); R,U = Matrix(R),Matrix(U)
+			R,U = factf(U); R,U = Matrix(R),Matrix(U)
 			ρ = size(R, 2)
 			R,U = reshape(R, p, m..., ρ),reshape(U, ρ, n..., q)
 		end
@@ -596,7 +596,7 @@ function factorqr!(U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
 			U,R = zeros(T, p, n..., 0),zeros(T, 0, m..., q)
 		else
 			U = reshape(U, p*prod(n), q)
-			U,R = qr!(U); U,R = Matrix(U),Matrix(R)
+			U,R = factf(U); U,R = Matrix(U),Matrix(R)
 			ρ = size(R, 1)
 			U,R = reshape(U, p, n..., ρ),reshape(R, ρ, m..., q)
 		end
@@ -606,7 +606,8 @@ end
 
 factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N} = factorqr!(U;  rev=rev)
 
-function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=false) where {T<:FloatRC,N}
+function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=false,
+	               factf=(A -> LinearAlgebra.qr!(A, LinearAlgebra.ColumnNorm()))) where {T<:FloatRC,N}
 	# when returnS==true, a factor S satisfying A ⨝ S = Q if rev==false and S ⨝ A = Q if rev==true is returned
 	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
 	if rev
@@ -618,7 +619,7 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 		else
 			U = reshape(U, p, prod(n)*q)
 			U = permutedims(U) # reallocation
-			fact = qr!(U, ColumnNorm())
+			fact = factf(U)
 			π = invperm(fact.p)
 			R = permutedims(fact.R[:,π])
 			ρ = size(R, 2)
@@ -640,7 +641,7 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 			end
 		else
 			U = reshape(U, p*prod(n), q)
-			fact = qr!(U, ColumnNorm())
+			fact = factf(U)
 			π = invperm(fact.p)
 			R = fact.R[:,π]
 			ρ = size(R, 1)
@@ -737,8 +738,7 @@ function factorsvd!(W::Factor{T,N},
                     rank::Int=0,
                     major::String="last",
 					rev::Bool=false,
-					fsvd! = (W -> svd!(W; full=false, alg=LinearAlgebra.QRIteration()))
-					) where {S<:AbstractFloat,T<:FloatRC{S},N}
+					factf=(A -> LinearAlgebra.svd!(A; full=false, alg=LinearAlgebra.QRIteration())) ) where {S<:AbstractFloat,T<:FloatRC{S},N}
 	d = factorndims(W)
 	k = factorsize(W)
 	if isa(m, Colon) && isa(n, Colon)
@@ -835,7 +835,7 @@ function factorsvd!(W::Factor{T,N},
 		V = zeros(T, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
 	else
-		fact = fsvd!(W)
+		fact = factf(W)
 		U = fact.U
 		σ = fact.S
 		V = fact.Vt
