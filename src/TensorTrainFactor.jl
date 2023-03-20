@@ -852,8 +852,7 @@ function factorsvd!(W::Factor{T,N},
 		if μ > 0 && rtol > 0 && tol² == 0
 			throw(ErrorException("underflow encountered while computing the squared absolute accuracy threshold from the squared relative one"))
 		end
-		tol² = [atol²,tol²]; ind = (tol² .> 0)
-		tol² = any(ind) ? minimum(tol²[ind]) : zero(S)
+		tol = max(atol, tol)
 		σσ,ε,ρ = Auxiliary.threshold(σ, soft, hard, tol, rank)
 		δ = ε/μ
 		U = U[:,1:ρ]; V = V[1:ρ,:]
