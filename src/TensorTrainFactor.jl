@@ -36,26 +36,22 @@ function factorranks(U::Factor{T,N}) where {T<:Number,N}
 	if any(sz[2:end-1] .== 0)
 		throw(ArgumentError("the mode sizes should be positive"))
 	end
-	return sz[1],sz[end]
+	sz[1],sz[end]
 end
 
-function factornumentries(U::Factor{T,N}) where {T<:Number,N}
-	return length(U)
-end
+factornumentries(U::Factor{T,N}) where {T<:Number,N} = length(U)
 
 factorstorage(U::Factor{T,N}) where {T<:Number,N} = factornumentries(U)
 
-function factorndims(U::Factor{T,N}) where {T<:Number,N}
+function factorndims(::Factor{T,N}) where {T<:Number,N}
 	if N < 2
 		throw(ArgumentError("the factor should have, at least, two rank dimensions"))
 	end
-	return N-2
+	N-2
 end
 
 function factor(U::Array{T,N}) where {T<:Number,N}
-	U = reshape(U, 1, size(U)..., 1)
-	U = Factor{T,N+2}(U)
-	return U
+	reshape(U, 1, size(U)..., 1)
 end
 
 function factor(U::Matrix{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}, n::Union{Int,NTuple{N,Int},Vector{Int},Vector{Any}}, π::Union{NTuple{K,Int},Vector{Int}}) where {T<:Number,K,M,N}
@@ -91,7 +87,7 @@ function factor(U::Matrix{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}
 	end
 	U = reshape(U, (m...,p,n...,q))
 	U = permutedims(U, (dm+1,π[1:dm]...,(π[dm+1:d].+1)...,d+2))
-	return U
+	U
 end
 
 factor(U::Matrix{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}, n::Union{Int,NTuple{N,Int},Vector{Int},Vector{Any}}) where {T<:Number,M,N} = factor(U, m, n, collect(1:length(m)+length(n)))
@@ -118,49 +114,39 @@ function factormatrix(U::Factor{T,K}, π::Indices, σ::Indices) where {T<:Number
 	n = factorsize(U); p,q = factorranks(U)
 	U = permutedims(U, ((π.+1)...,1,(σ.+1)...,d+2))
 	U = reshape(U, p*prod(n[π]), q*prod(n[σ]))
-	return U
+	U
 end
 
 function factorrankselect(U::Factor{T,N}, α::Indices, β::Indices) where {T<:Number,N}
 	isa(α, Int) && (α = [α])
 	isa(β, Int) && (β = [β])
 	p,q = factorranks(U)
+	n = factorsize(U)
 	α = indvec(α; min=1, max=p)
 	β = indvec(β; min=1, max=q)
-	if length(α) == 0
-		throw(ArgumentError("the index or range for the first rank is empty"))
-	end
 	if α ⊈ 1:p
 		throw(ArgumentError("the index or range for the first rank is incorrect"))
-	end
-	if length(β) == 0
-		throw(ArgumentError("the index or range for the second rank is empty"))
 	end
 	if β ⊈ 1:q
 		throw(ArgumentError("the index or range for the second rank is incorrect"))
 	end
-	d = N-2
-	V = U
-	V = selectdim(V, d+2, β)
-	V = selectdim(V, 1, α)
-	V = copy(V)
-	return V
+	U = reshape(U, p, :, q)
+	V = U[α,:,β]
+	reshape(V, length(α), n..., length(β))
 end
 
 function block(U::Factor{T,N}, α::Int, β::Int) where {T<:Number,N}
 	p,q = factorranks(U)
+	n = factorsize(U)
 	if α ∉ 1:p
 		throw(ArgumentError("the first rank index is out of range"))
 	end
 	if β ∉ 1:q
 		throw(ArgumentError("the second rank index is out of range"))
 	end
-	d = N-2
-	V = U
-	V = selectdim(V, d+2, β)
-	V = selectdim(V, 1, α)
-	V = copy(V)
-	return V
+	U = reshape(U, p, :, q)
+	V = U[α,:,β]
+	reshape(V, n...)
 end
 
 function factorvcat(U::Factor{T,N}, V::Factor{T,N}, W::Vararg{Factor{T,N},M}) where {T<:Number,N,M}
@@ -175,7 +161,7 @@ function factorvcat(U::Factor{T,N}, V::Factor{T,N}, W::Vararg{Factor{T,N},M}) wh
 			throw(ArgumentError("the factors are incompatible in the second rank"))
 		end
 	end
-	return cat(U, W...; dims=1)
+	cat(U, W...; dims=1)
 end
 
 function factorhcat(U::Factor{T,N}, V::Factor{T,N}, W::Vararg{Factor{T,N},M}) where {T<:Number,N,M}
@@ -191,7 +177,7 @@ function factorhcat(U::Factor{T,N}, V::Factor{T,N}, W::Vararg{Factor{T,N},M}) wh
 		end
 	end
 	d = N-2
-	return cat(U, W...; dims=d+2)
+	cat(U, W...; dims=d+2)
 end
 
 function factordcat(U::Factor{T,N}, V::Factor{T,N}, W::Vararg{Factor{T,N},M}) where {T<:Number,N,M}
@@ -203,7 +189,7 @@ function factordcat(U::Factor{T,N}, V::Factor{T,N}, W::Vararg{Factor{T,N},M}) wh
 		end
 	end
 	d = N-2
-	return cat(U, W...; dims=(1,d+2))
+	cat(U, W...; dims=(1,d+2))
 end
 
 function factorutcat(U₁₁::Factor{T,N}, U₁₂::Factor{T,N}, U₂₂::Factor{T,N}) where {T<:Number,N}
@@ -221,7 +207,7 @@ function factorutcat(U₁₁::Factor{T,N}, U₁₂::Factor{T,N}, U₂₂::Factor
 	end
 	U₂₁ = zeros(T, (p₂₂,n₁₁...,q₁₁))
 	d = N-2
-	return cat(cat(U₁₁, U₂₁; dims=1), cat(U₁₂, U₂₂; dims=1); dims=d+2)
+	cat(cat(U₁₁, U₂₁; dims=1), cat(U₁₂, U₂₂; dims=1); dims=d+2)
 end
 
 function factorltcat(U₁₁::Factor{T,N}, U₂₁::Factor{T,N}, U₂₂::Factor{T,N}) where {T<:Number,N}
@@ -239,14 +225,13 @@ function factorltcat(U₁₁::Factor{T,N}, U₂₁::Factor{T,N}, U₂₂::Factor
 	end
 	U₁₂ = zeros(T, (p₁₁,n₁₁...,q₂₂))
 	d = N-2
-	return cat(cat(U₁₁, U₂₁; dims=1), cat(U₁₂, U₂₂; dims=1); dims=d+2)
+	cat(cat(U₁₁, U₂₁; dims=1), cat(U₁₂, U₂₂; dims=1); dims=d+2)
 end
 
 function factorranktranspose(U::Factor{T,N}) where {T<:Number,N}
 	d = N-2
 	prm = vcat(d+2,(1:d).+1,1)
-	U = permutedims(U, prm)
-	return U
+	permutedims(U, prm)
 end
 
 function factormodetranspose(U::Factor{T,N}, π::Union{NTuple{K,Int},Vector{Int}}) where {T<:Number,N,K}
@@ -259,8 +244,7 @@ function factormodetranspose(U::Factor{T,N}, π::Union{NTuple{K,Int},Vector{Int}
 	end
 	isa(π, Vector{Int}) || (π = collect(π))
 	prm = vcat(1,π.+1,d+2)
-	U = permutedims(U, prm)
-	return U
+	permutedims(U, prm)
 end
 
 factormodetranspose(U::Factor{T,N}) where {T<:Number,N} = factormodetranspose(U, collect(factorndims(U):-1:1))
@@ -271,8 +255,7 @@ function factormodereshape(U::Factor{T,N}, n::FactorSize) where {T<:Number,N}
 	if prod(n) ≠ prod(factorsize(U))
 		throw(DimensionMismatch("n is inconsistent with U"))
 	end
-	U = reshape(U, p, n..., q)
-	return U
+	reshape(U, p, n..., q)
 end
 
 factormodereshape(U::Factor{T,N}, n::Vector{Any}) where {T<:Number,N} = factormodereshape(U, Vector{Int}())
@@ -289,8 +272,7 @@ function factordiagm(U::Factor{T,N}) where {T<:Number,N}
 	for β ∈ 1:q, i ∈ 1:prod(n), α ∈ 1:p
 		V[α,i,i,β] = U[α,i,β]
 	end
-	V = reshape(V, p, n..., n..., q)
-	return V
+	reshape(V, p, n..., n..., q)
 end
 
 function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::String="last") where {T<:Number,N}
@@ -298,8 +280,8 @@ function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
 	end
 	rev && ((U,V) = (V,U))
-	m = factorsize(U); (p,r) = factorranks(U)
-	n = factorsize(V); (s,q) = factorranks(V)
+	m = factorsize(U); p,r = factorranks(U)
+	n = factorsize(V); s,q = factorranks(V)
 	if r ≠ s
 		throw(ArgumentError("U and V have inconsistent ranks"))
 	end
@@ -315,42 +297,34 @@ function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::
 	prm = prm'; prm = prm[:]
 	W = permutedims(W, [1,(prm.+1)...,2*d+2])
 	k = [m..., n...]; k = k[prm]; k = reshape(k, (2,d)); k = prod(k; dims=1)
-	W = reshape(W, (p,k...,q))
-	W = Factor{T}(W)
-	return W
+	reshape(W, (p,k...,q))
 end
 
-function factorcontract(U::Factor{T,N}, V::Factor{T,2}) where {T<:Number,N}
+function factorcontract(U::Factor{T,N}, V::S) where {T<:Number,N,S<:AbstractMatrix{T}}
 	n = factorsize(U)
-	(p,r) = factorranks(U)
-	(s,q) = factorranks(V)
+	p,r = factorranks(U)
+	s,q = size(V)
 	if r ≠ s
 		throw(ArgumentError("U and V have inconsistent ranks"))
 	end
-	U = reshape(U, p*prod(n), r);
-	V = reshape(V, r, q)
+	U = reshape(U, p*prod(n), r)
 	W = U*V
-	W = reshape(W, p, n..., q)
-	W = Factor{T}(W)
-	return W
+	reshape(W, p, n..., q)
 end
 
-function factorcontract(U::Factor{T,2}, V::Factor{T,N}) where {T<:Number,N}
+function factorcontract(U::S, V::Factor{T,N}) where {T<:Number,N,S<:AbstractMatrix{T}}
 	n = factorsize(V)
-	(p,r) = factorranks(U)
-	(s,q) = factorranks(V)
+	p,r = size(U)
+	s,q = factorranks(V)
 	if r ≠ s
 		throw(ArgumentError("U and V have inconsistent ranks"))
 	end
-	U = reshape(U, p, r);
 	V = reshape(V, r, prod(n)*q)
 	W = U*V
-	W = reshape(W, p, n..., q)
-	W = Factor{T}(W)
-	return W
+	reshape(W, p, n..., q)
 end
 
-factorcontract(U::Factor{T,2}, V::Factor{T,2}) where T<:Number = U*V
+factorcontract(U::S, V::R) where {T<:Number,S<:AbstractMatrix{T},R<:AbstractMatrix{T}} = U*V
 
 
 function factormp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ₂::Indices) where {T<:Number,N₁,N₂}
@@ -394,8 +368,7 @@ function factormp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ
 	end
 	U = reshape(U, (p₁,q₁,n...,p₂,q₂))
 	U = permutedims(U, (1,d+3,(3:d+2)...,2,d+4))
-	U = reshape(U, (p₁*p₂,n...,q₁*q₂))
-	return U
+	reshape(U, (p₁*p₂,n...,q₁*q₂))
 end
 
 # function factorkp(U::Factor{T,N}, V::Vararg{Factor{T,N},M}) where {T<:Number,N,M}
@@ -413,8 +386,7 @@ end
 # 	prm = prm'; prm = prm[:]
 # 	U = permutedims(U, [1,(prm.+1)...,nf*d+2])
 # 	p,q = prod(p),prod(q); n = prod(n; dims=2)
-# 	U = reshape(U, p, n..., q)
-# 	return U
+# 	reshape(U, p, n..., q)
 # end
 
 # function factorkp2(U::Factor{T,N}, V::Factor{T,N}) where {T<:Number,N}
@@ -425,8 +397,7 @@ end
 # 	prm = collect(1:2*d); prm = reshape(prm, d, 2)
 # 	prm = prm'; prm = prm[:]
 # 	W = permutedims(W, [1,(prm.+1)...,2*d+2])
-# 	W = reshape(W, p, n..., q)
-# 	return W
+# 	reshape(W, p, n..., q)
 # end
 
 function factorkp(U::Union{Factor{T,N},Tuple{Factor{T,N},Int}}, V::Vararg{Union{Factor{T,N},Tuple{Factor{T,N},Int}},M}) where {T<:Number,N,M}
@@ -473,7 +444,7 @@ function factorkp(U::Union{Factor{T,N},Tuple{Factor{T,N},Int}}, V::Vararg{Union{
 	else
 		W = reshape(W, p, q)
 	end
-	return W
+	W
 end
 
 
@@ -489,8 +460,7 @@ function factorhp(U::Factor{T,N}, V::Factor{T,N}) where {T<:Number,N}
 	for i ∈ 1:m
 		W[:,:,i,:,:] = reshape(kron(V[:,i,:], U[:,i,:]), (p,r,q,s))
 	end
-	W = reshape(W, (p*r,n...,q*s))
-	return W
+	reshape(W, p*r, n..., q*s)
 end
 
 function factorhp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ₂::Indices) where {T<:Number,N₁,N₂}
@@ -534,8 +504,7 @@ function factorhp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ
 	U = permutedims(U, (1,4,2,7,5,3,6))
 	U = reshape(U, p₁*p₂, nτ₁..., nσ₁..., m₂*q₁*q₂)
 	U = permutedims(U, (1,(invperm((τ₁...,σ₁...)).+1)...,d₁+2))
-	U = reshape(U, p₁*p₂, n₁..., nτ₂..., q₁*q₂)
-	return U
+	reshape(U, p₁*p₂, n₁..., nτ₂..., q₁*q₂)
 end
 
 
@@ -601,7 +570,7 @@ function factorqr!(U::Factor{T,N}; rev::Bool=false, factf=(rev ? A -> LinearAlge
 			U,R = reshape(U, p, n..., ρ),reshape(R, ρ, m..., q)
 		end
 	end
-	Factor{T,N}(U),Factor{T,N}(R)
+	U,R
 end
 
 factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N} = factorqr!(U;  rev=rev)
@@ -656,13 +625,10 @@ function factorqr!(U::Factor{T,N}, ::Val{true}; rev::Bool=false, returnS::Bool=f
 			end
 		end
 	end
-	Q = Factor{T,N}(Q)
-	R = Factor{T,N}(R)
 	if returnS
-		S = Factor{T,N}(S)
 		return Q,R,S
 	end
-	return Q,R
+	Q,R
 end
 
 function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,N}; rev::Bool=false) where {T<:FloatRC,N}
@@ -714,8 +680,7 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 		Q,R = qraddcols(Q, R, U); r = size(R, 1)
 		Q,R = reshape(Q, (p,n...,r)),reshape(R, (r,m...,q+s))
 	end
-	Q,R = Factor{T,N}(Q),Factor{T,N}(R)
-	return Q,R
+	Q,R
 end
 
 """
@@ -861,7 +826,5 @@ function factorsvd!(W::Factor{T,N},
 		V = reshape(V, ρ, k[d+1:2d]..., q)
 		rev && ((U,V) = (V,U))
 	end
-	U = Factor{T,N}(U)
-	V = Factor{T,N}(V)
-	return U,V,ε,δ,μ,ρ,σ
+	U,V,ε,δ,μ,ρ,σ
 end
