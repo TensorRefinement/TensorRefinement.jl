@@ -18,7 +18,7 @@ function trigevalmask(t::Vector{T}, ν::Vector{T}) where {T<:AbstractFloat}
 			V[i,2*α  ] = sinpi(ν[α]*t[i])
 		end
 	end
-	return V
+	V
 end
 
 function trigeval(t::Vector{T}, ν::Vector{T}, c::Vector{T}) where {T<:AbstractFloat}
@@ -36,7 +36,7 @@ function trigeval(t::Vector{T}, ν::Vector{T}, c::Vector{T}) where {T<:AbstractF
 			u[i] += c[2*α-1]*cospi(ν[α]*t[i])+c[2*α]*sinpi(ν[α]*t[i])
 		end
 	end
-	return u
+	u
 end
 
 function trigrefmask(η::T, ν::Vector{T}) where {T<:AbstractFloat}
@@ -52,7 +52,7 @@ function trigrefmask(η::T, ν::Vector{T}) where {T<:AbstractFloat}
 		W[2*α-1,2*α  ] =  s
 		W[2*α,  2*α  ] =  c
 	end
-	return W
+	W
 end
 
 function trigrefmask2(ν::Vector{T}) where {T<:AbstractFloat}
@@ -60,11 +60,11 @@ function trigrefmask2(ν::Vector{T}) where {T<:AbstractFloat}
 	if r == 0
 		throw(ArgumentError("the number of frequencies should be positive"))
 	end
-	W1 = trigrefmask(convert(T, -1/2), ν)
-	W2 = trigrefmask(convert(T, 1/2), ν)
+	W1 = trigrefmask(convert(T, -1//2), ν)
+	W2 = trigrefmask(convert(T, 1//2), ν)
 	W = [W1[:] W2[:]]
 	W = reshape(W, 2*r, 2*r, 2)
-	return W
+	W
 end
 
 function trigdiffmask(ν::Vector{T}) where {T<:AbstractFloat}
@@ -77,7 +77,7 @@ function trigdiffmask(ν::Vector{T}) where {T<:AbstractFloat}
 		W[2*α-1,2*α  ] =  π*ν[α]
 		W[2*α,  2*α-1] = -π*ν[α]
 	end
-	return W
+	W
 end
 
 function trigdiff(ν::Vector{T}, c::Vector{T}) where {T<:AbstractFloat}
@@ -90,7 +90,7 @@ function trigdiff(ν::Vector{T}, c::Vector{T}) where {T<:AbstractFloat}
 		d[2*α-1] =  π*ν[α]*c[2*α]
 		d[2*α]   = -π*ν[α]*c[2*α-1]
 	end
-	return d
+	d
 end
 
 
@@ -108,7 +108,7 @@ function cosfactor(τ::Vector{T}, c::T) where {T<:AbstractFloat}
 		U[1,i,2] = -β
 		U[2,i,2] =  α
 	end
-	return U
+	U
 end
 
 function cosdec(τ::Vector{Vector{T}}, c::Vector{T}) where {T<:AbstractFloat}
@@ -116,7 +116,6 @@ function cosdec(τ::Vector{Vector{T}}, c::Vector{T}) where {T<:AbstractFloat}
 	if length(c) ≠ L
 		throw(ArgumentError("τ and c should be of the same length"))
 	end
-	n = [ size(τ[ℓ]) for ℓ ∈ 1:L ]
 	if any(τ .== 0)
 		throw(ArgumentError("all elements of τ should be nonempty"))
 	end
@@ -124,7 +123,7 @@ function cosdec(τ::Vector{Vector{T}}, c::Vector{T}) where {T<:AbstractFloat}
 	U[1] = U[1][1:1,:,:]
 	U[L] = U[L][:,:,1:1]
 	U = dec(U)
-	return U
+	U
 end
 
 
@@ -143,7 +142,7 @@ function trigdec(ν::Vector{T}, c::Vector{T}, L::Int; major::String="last") wher
 		U[ℓ+1] = permutedims(trigrefmask2(ν/2^(ℓ-1)), (2,3,1))
 	end
 	(major == "last") && decreverse!(U)
-	return U
+	U
 end
 
 function trigdeceval!(U::Dec{T,N}, t::Vector{T}, ν::Vector{T}; major::String="last") where {T<:AbstractFloat,N}
@@ -171,7 +170,7 @@ function trigdeceval!(U::Dec{T,N}, t::Vector{T}, ν::Vector{T}; major::String="l
 		W = Array{T,N}(W)
 		decpush!(U, W)
 	end
-	return U
+	U
 end
 
 

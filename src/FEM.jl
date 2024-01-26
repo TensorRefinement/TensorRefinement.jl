@@ -23,11 +23,11 @@ function extdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where 
 	V = U
 	W = T[2 1; 1 0; 0 1; 1 2] ./ sqrt(8*one(T)); W = factor(W, 2, 1)
 	Z = T[0,1][:,:]; Z = factor(Z, 1, 1)
-	A = factorkp((A,d))
-	U = factorkp((U,d))
-	V = factorkp((V,d))
-	W = factorkp((W,d))
-	Z = factorkp((Z,d))
+	A = factorkp(A => d)
+	U = factorkp(U => d)
+	V = factorkp(V => d)
+	W = factorkp(W => d)
+	Z = factorkp(Z => d)
 	P = MatrixDec{T}()
 	decpush!(P, A)
 	(ℓ > 1) && decappend!(P, dec(U; len=ℓ-1))
@@ -60,11 +60,11 @@ function extdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where 
 	V = U[:,:,:,[3,2]]
 	W = T[2 1; 1 0; 0 1; 1 2] ./ sqrt(8*one(T)); W = factor(W, 2, 1)
 	Z = T[0,1][:,:]; Z = factor(Z, 1, 1)
-	A = factorkp((A,d))
-	U = factorkp((U,d))
-	V = factorkp((V,d))
-	W = factorkp((W,d))
-	Z = factorkp((Z,d))
+	A = factorkp(A => d)
+	U = factorkp(U => d)
+	V = factorkp(V => d)
+	W = factorkp(W => d)
+	Z = factorkp(Z => d)
 	P = MatrixDec{T}()
 	decpush!(P, A)
 	(ℓ > 1) && decappend!(P, dec(U; len=ℓ-1)) 
@@ -108,10 +108,10 @@ function diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	A = T[0 1]; A = factor(A, 1, 1)
 	U = T[J O ; J' I ].*sqrt(2*one(T)); U = factor(U, 2, 2)
 	V = U
-	A = factorkp((A,d))
+	A = factorkp(A => d)
 	(ℓ == 0) && (A = factorcontract(A, B))
-	U = factorkp((U,d))
-	V = factorkp((V,d))
+	U = factorkp(U => d)
+	V = factorkp(V => d)
 	V = factorcontract(V, B)
 	M = MatrixDec{T}()
 	decpush!(M, A)
@@ -119,7 +119,7 @@ function diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	(ℓ > 0) && decpush!(M, V)
 	for k ∈ ℓ+1:L
 		W = reshape(T[1 1 0 0; -1//2 1//2 1//2 1//2], 2, 2, 2)
-		W = factorkp((W,d))
+		W = factorkp(W => d)
 		W = factorcontract(Diagonal(1 ./w), W)
 		wi = (d > 1) ? kron(ntuple(j -> c0, Val(d))...) : c0
 		w = wi.*((1/ρ)^(2*k) / (one(T)*3)^d)
@@ -188,9 +188,9 @@ function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	A = T[1 0 0]; A = factor(A, 1, 1)
 	U = T[I2 I1 J'; O I J'; O O J].*sqrt(2*one(T)); U = factor(U, 2, 2)
 	V = U[:,:,:,[3,2]]
-	A = factorkp((A,d))
-	U = factorkp((U,d))
-	V = factorkp((V,d))
+	A = factorkp(A => d)
+	U = factorkp(U => d)
+	V = factorkp(V => d)
 	V = factorcontract(V, B)
 	M = MatrixDec{T}()
 	decpush!(M, A)
@@ -198,7 +198,7 @@ function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	decpush!(M, V)
 	for k ∈ ℓ+1:L
 		W = reshape(T[1 1 0 0; -1//2 1//2 1//2 1//2], 2, 2, 2)
-		W = factorkp((W,d))
+		W = factorkp(W => d)
 		W = factorcontract(Diagonal(1 ./w), W)
 		wi = (d > 1) ? kron(ntuple(j -> c0, Val(d))...) : c0
 		w = wi.*((1/ρ)^(2*k) / (one(T)*3)^d)
@@ -250,7 +250,7 @@ function dint(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="la
 	end
 	U = T[1 0; 0 1] ./ 2; U = factor(U, 2, 2)
 	Z = T[1 0; 0 1//3]
-	U = factorkp((U,d))
+	U = factorkp(U => d)
 	Z = kron(K, ntuple(j -> Z, Val(d))...)
 	Z = factor(Z, 2^d*(d+1), 2^d*(d+1))
 	Λ = dec(U; len=L)
@@ -274,7 +274,7 @@ function dintf(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="l
 	end
 	U = T[1 0; 0 1] ./ sqrt(one(T)*2); U = factor(U, 2, 2)
 	Z = T[1 0; 0 1/sqrt(one(T)*3)]
-	U = factorkp((U,d))
+	U = factorkp(U => d)
 	Z = kron(K, ntuple(j -> Z, Val(d))...)
 	Z = factor(Z, 2^d*(d+1), 2^d*(d+1))
 	Λ = dec(U; len=L)
@@ -296,8 +296,8 @@ function bpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatR
 	I = [1 0; 0 1]; J = [0 1; 0 0]; O = [0 0; 0 0]
 	U = T[I J'; O J]; U = factor(U, 2, 2)
 	W = T[1 0; 2 1; 1 2; 0 1] ./ sqrt(8*one(T)); W = factor(W, 2, 1)
-	U = factorkp((factormp(U, 2, U, 2),d)) ./ 2
-	W = factorkp((factormp(W, 2, W, 2),d))
+	U = factorkp(factormp(U, 2, U, 2) => d) ./ 2
+	W = factorkp(factormp(W, 2, W, 2) => d)
 	if L == 1
 		C = dec(U + W)
 	else
@@ -325,9 +325,9 @@ function bpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatR
 	U = T[I2 I1 J'; O I J'; O O J]; U = factor(U, 2, 2)
 	V = U[:,:,:,[2,3]]
 	W = T[1 0; 2 1; 1 2; 0 1] ./ sqrt(8*one(T)); W = factor(W, 2, 1)
-	U = factorkp((factormp(U, 2, U, 2),d)) ./ 2
-	V = factorkp((factormp(V, 2, V, 2),d)) ./ 2
-	W = factorkp((factormp(W, 2, W, 2),d))
+	U = factorkp(factormp(U, 2, U, 2) => d) ./ 2
+	V = factorkp(factormp(V, 2, V, 2) => d) ./ 2
+	W = factorkp(factormp(W, 2, W, 2) => d)
 	if L == 1
 		C = dec(V)
 	else
@@ -354,7 +354,7 @@ function extmix(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
 	end
 	U = T[1 0; 0 1]; U = factor(U, 2, 2)
-	U = factorkp((U, d))
+	U = factorkp(U => d)
 	E = MatrixDec{T}()
 	decappend!(E, dec(U; len=ℓ))
 	if ℓ == L
@@ -414,7 +414,7 @@ function extmix(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 		W1[:,2:d+1,:] .*= (one(T)*2)^ℓ
 		W1 = reshape(W1, 2^d*(d+1), 2^d)
 		W2 = reshape(T[1 1 0 0; -1//2 1//2 1//2 1//2], 2, 2, 2)
-		W2 = factorkp((W2,d))
+		W2 = factorkp(W2 => d)
 		W2 = factorcontract(W2, Diagonal(w))
 		W = factorcontract(W1, W2)
 		W = reshape(W, 2^d*(d+1), 2^d, 2^d)
@@ -424,7 +424,7 @@ function extmix(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 		decpush!(E, W)
 		for k ∈ ℓ+2:L
 			W = reshape(T[1 1 0 0; -1//2 1//2 1//2 1//2], 2, 2, 2)
-			W = factorkp((W,d))
+			W = factorkp(W => d)
 			W = factorcontract(Diagonal(1 ./w), W)
 			wi = (d > 1) ? kron(ntuple(j -> c0, Val(d))...) : c0
 			w = wi.*((1/ρ)^(2*k) / (one(T)*3)^d)
@@ -490,17 +490,17 @@ function diffbpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:Fl
 	V = U
 	WW = T[2 1; 1 0; 0 1; 1 2] ./ sqrt(8*one(T)); WW = factor(WW, 2, 1)
 	ZZ = T[0,1][:,:]; ZZ = factor(ZZ, 1, 1)
-	A = factorkp((A,d))
+	A = factorkp(A => d)
 	A = factorhcat(factormp(A, 2, A, 2), factormp(factorcontract(A, B), 2, A, 2))
-	U = factorkp((U,d)); U = factormp(U, 2, U, 2).*(sqrt(2*one(T))^d / 2)
-	WW = factorkp((WW,d))
-	ZZ = factorkp((ZZ,d))
-	V = factorkp((V,d))
+	U = factorkp(U => d); U = factormp(U, 2, U, 2).*(sqrt(2*one(T))^d / 2)
+	WW = factorkp(WW => d)
+	ZZ = factorkp(ZZ => d)
+	V = factorkp(V => d)
 	M = MatrixDec{T}()
 	decpush!(M, A)
 	for k ∈ 1:L
 		W = reshape(T[1 1 0 0; -1//2 1//2 1//2 1//2], 2, 2, 2)
-		W = factorkp((W,d))
+		W = factorkp(W => d)
 		W = factorcontract(Diagonal(1 ./w), W)
 		wi = (d > 1) ? kron(ntuple(j -> c0, Val(d))...) : c0
 		w = wi.*((1/ρ)^(2*k) / (one(T)*3)^d)
@@ -575,17 +575,17 @@ function diffbpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:Fl
 	V = U[:,:,:,[3,2]]
 	WW = T[2 1; 1 0; 0 1; 1 2] ./ sqrt(8*one(T)); WW = factor(WW, 2, 1)
 	ZZ = T[0,1][:,:]; ZZ = factor(ZZ, 1, 1)
-	A = factorkp((A,d))
+	A = factorkp(A => d)
 	A = factorhcat(factormp(A, 2, A, 2), zeros(T, 1, 1, 1, 4^d))
-	U = factorkp((U,d)); U = factormp(U, 2, U, 2).*(sqrt(2*one(T))^d / 2)
-	WW = factorkp((WW,d))
-	ZZ = factorkp((ZZ,d))
-	V = factorkp((V,d))
+	U = factorkp(U => d); U = factormp(U, 2, U, 2).*(sqrt(2*one(T))^d / 2)
+	WW = factorkp(WW => d)
+	ZZ = factorkp(ZZ => d)
+	V = factorkp(V => d)
 	M = MatrixDec{T}()
 	decpush!(M, A)
 	for k ∈ 1:L
 		W = reshape(T[1 1 0 0; -1//2 1//2 1//2 1//2], 2, 2, 2)
-		W = factorkp((W,d))
+		W = factorkp(W => d)
 		W = factorcontract(Diagonal(1 ./w), W)
 		wi = (d > 1) ? kron(ntuple(j -> c0, Val(d))...) : c0
 		w = wi.*((1/ρ)^(2*k) / (one(T)*3)^d)

@@ -130,9 +130,7 @@ function factorrankselect(U::Factor{T,N}, α::Indices, β::Indices) where {T<:Nu
 	if β ⊈ 1:q
 		throw(ArgumentError("the index or range for the second rank is incorrect"))
 	end
-	U = reshape(U, p, :, q)
-	V = U[α,:,β]
-	reshape(V, length(α), n..., length(β))
+	U[α,ntuple(k -> Colon(), Val(N-2))...,β]
 end
 
 function block(U::Factor{T,N}, α::Int, β::Int) where {T<:Number,N}
@@ -230,24 +228,27 @@ end
 
 function factorranktranspose(U::Factor{T,N}) where {T<:Number,N}
 	d = N-2
-	prm = vcat(d+2,(1:d).+1,1)
+	prm = (d+2,ntuple(k -> k+1, Val(d))...,1)
 	permutedims(U, prm)
 end
 
-function factormodetranspose(U::Factor{T,N}, π::Union{NTuple{K,Int},Vector{Int}}) where {T<:Number,N,K}
+function factormodetranspose(U::Factor{T,N}, π::NTuple{K,Int}) where {T<:Number,N,K}
 	d = N-2
 	if d == 0
 		throw(ArgumentError("the factor should have at least one mode dimension"))
 	end
-	if length(π) ≠ d || !isperm(π)
-		throw(ArgumentError("π is not a valid permutation of the mode dimensions of U"))
+	if K ≠ d
+		throw(ArgumentError("π is not a valid permutation of the mode dimensions of U: π contains $K elements, while U has $N mode dimensions"))
 	end
-	isa(π, Vector{Int}) || (π = collect(π))
-	prm = vcat(1,π.+1,d+2)
+	if !isperm(π)
+		throw(ArgumentError("π is not a valid permutation"))
+	end
+	prm = (1,(π.+1)...,d+2)
 	permutedims(U, prm)
 end
 
-factormodetranspose(U::Factor{T,N}) where {T<:Number,N} = factormodetranspose(U, collect(factorndims(U):-1:1))
+factormodetranspose(U::Factor{T,N}, π::Vector{Int}) where {T<:Number,N} = factormodetranspose(U, Tuple(π))
+factormodetranspose(U::Factor{T,2}) where {T<:Number} = factormodetranspose(U, (2,1))
 
 function factormodereshape(U::Factor{T,N}, n::FactorSize) where {T<:Number,N}
 	d = N-2
@@ -363,12 +364,11 @@ function factormp(U₁::Factor{T,N₁}, σ₁::Indices, U₂::Factor{T,N₂}, σ
 	U₂ = reshape(U₂, prod(nσ₂), prod(nτ₂)*p₂*q₂)
 	U = U₁*U₂; n = [nτ₁..., nτ₂...]; d = length(τ₁) + length(τ₂)
 	if d == 0
-		# TODO
-		n = [1]; d = 1
+		n = Vector{Int}()
 	end
-	U = reshape(U, (p₁,q₁,n...,p₂,q₂))
+	U = reshape(U, p₁, q₁, n..., p₂, q₂)
 	U = permutedims(U, (1,d+3,(3:d+2)...,2,d+4))
-	reshape(U, (p₁*p₂,n...,q₁*q₂))
+	reshape(U, p₁*p₂, n..., q₁*q₂)
 end
 
 # function factorkp(U::Factor{T,N}, V::Vararg{Factor{T,N},M}) where {T<:Number,N,M}
@@ -400,14 +400,14 @@ end
 # 	reshape(W, p, n..., q)
 # end
 
-function factorkp(U::Union{Factor{T,N},Tuple{Factor{T,N},Int}}, V::Vararg{Union{Factor{T,N},Tuple{Factor{T,N},Int}},M}) where {T<:Number,N,M}
+function factorkp(U::Union{Factor{T,N},Pair{Factor{T,N},Int}}, V::Vararg{Union{Factor{T,N},Pair{Factor{T,N},Int}},M}) where {T<:Number,N,M}
 	V = (U,V...)
 	nf = length(V)
 	U = Vector{Factor{T,N}}(undef, nf)
 	s = Vector{Int}(undef, nf)
 	for k ∈ 1:nf
 		W = V[k]
-		if isa(W, Tuple)
+		if isa(W, Pair)
 			if W[2] < 0
 				throw(ArgumentError("all the specified exponents should be nonnegative"))
 			end
