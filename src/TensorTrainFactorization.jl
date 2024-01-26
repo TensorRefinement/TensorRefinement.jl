@@ -718,7 +718,7 @@ end
 # 	return [ factorkp(U[ℓ], [ V[k-1][ℓ] for k ∈ 2:d ]...) for ℓ ∈ 1:L ]
 # end
 
-function deckp(U::Union{Dec{T,N},Tuple{Dec{T,N},Int}}, V::Vararg{Union{Dec{T,N},Tuple{Dec{T,N},Int}},M}) where {T<:Number,N,M}
+function deckp(U::Union{Dec{T,N},Pair{Dec{T,N},Int}}, V::Vararg{Union{Dec{T,N},Pair{Dec{T,N},Int}},M}) where {T<:Number,N,M}
 	V = (U,V...)
 	nf = length(V)
 	U = Vector{Tuple{Dec{T,N},Int}}(undef, nf)
@@ -739,7 +739,7 @@ function deckp(U::Union{Dec{T,N},Tuple{Dec{T,N},Int}}, V::Vararg{Union{Dec{T,N},
 			throw(ArgumentError("the input decompositions differ in the number of factors"))
 		end
 	end
-	return [ factorkp([ (U[k][1][ℓ],U[k][2]) for k ∈ 1:nf ]...) for ℓ ∈ 1:L ]
+	return [ factorkp([ U[k][1][ℓ] => U[k][2] for k ∈ 1:nf ]...) for ℓ ∈ 1:L ]
 end
 
 
@@ -911,7 +911,7 @@ end
 decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path, returnRfactors=returnRfactors)
 
 
-function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2{S}=zero(S), hard::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=v, rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
+function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
 	# assumes that the decomposition is orthogonal
 	L = declength(W); decrank(W)
 	if L == 0
@@ -1057,6 +1057,6 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	return W,ε,δ,μ,ρ,σ
 end
 
-decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", hard::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
 
-decsvd!(W::Dec{T,N}; path::String="", hard::Float2{S}=zero(S), aTol::Float2{S}=zero(S), aTolDistr::Float2{S}=zero(S), rTol::Float2{S}=zero(S), rTolDistr::Float2{S}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
