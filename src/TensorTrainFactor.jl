@@ -638,9 +638,11 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 		throw(ArgumentError("Q and U are incompatible in mode size"))
 	end
 	if rev
-		r,q = factorranks(Q); s,qq = factorranks(U)
+		r,q = factorranks(Q)
+		s,qq = factorranks(U)
 		if isa(R, Nothing)
-			R = reshape(Matrix{T}(I, r, r), (r,m...,r)); p = r
+			R = reshape(Matrix{T}(I, r, r), r, m..., r)
+			p = r
 		else
 			if factorsize(R) ≠ m
 				throw(ArgumentError("R should have the same number of mode dimensions as Q and unitary mode sizes"))
@@ -657,11 +659,13 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 		Q = reshape(Q, r, prod(n)*q)
 		U = reshape(U, s, prod(n)*q)
 		R,Q = lqaddrows(R, Q, U); r = size(R, 2)
-		R,Q = reshape(R, (p+s,m...,r)),reshape(Q, (r,n...,q))
+		R,Q = reshape(R, p+s, m..., r),reshape(Q, r, n..., q)
 	else
-		p,r = factorranks(Q); pp,s = factorranks(U)
+		p,r = factorranks(Q)
+		pp,s = factorranks(U)
 		if isa(R, Nothing)
-			R = reshape(Matrix{S}(I, r, r), (r,m...,r)); q = r
+			R = reshape(Matrix{T}(I, r, r), r, m..., r)
+			q = r
 		else
 			if factorsize(R) ≠ m
 				throw(ArgumentError("R should have the same number of mode dimensions as Q and unitary mode sizes"))
@@ -678,7 +682,7 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 		Q = reshape(Q, p*prod(n), r)
 		U = reshape(U, p*prod(n), s)
 		Q,R = qraddcols(Q, R, U); r = size(R, 1)
-		Q,R = reshape(Q, (p,n...,r)),reshape(R, (r,m...,q+s))
+		Q,R = reshape(Q, p, n..., r),reshape(R, r, m..., q+s)
 	end
 	Q,R
 end
