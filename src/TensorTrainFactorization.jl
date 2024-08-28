@@ -595,6 +595,37 @@ function decinsertidentity!(U::Dec{T,N}, ℓ::Int; path::String="", rankprecheck
 	return insert!(U, ℓ, V)
 end
 
+"""
+    decskp!(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number, N}
+
+Perform sequential contraction of components of a decomposed tensor `W` based on specified indices `Λ`, following a specified path and contraction order.
+
+# Arguments
+- `W::Dec{T, N}`: decomposed tensor object of type `Dec` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `Λ::Indices`: reference numbers specifying which components of (the tensor) `W` to contract. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}` specifying particular indices.
+- `path::String=""`: keyword argument specifying the order of contraction. 
+  - `""` (default): path can be deduced from `Λ` if `Λ` is a colon or empty.
+  - `"forward"`: Contraction of components in a forward sequence.
+  - `"backward"`: Contraction of components in a backward sequence.
+- `major::String="last"`: keyword argument indicating the primary direction for the contraction operation.
+  - `"last"` (default): Contraction focuses on the last dimension.
+  - `"first"`: Contraction focuses on the first dimension.
+
+# Returns
+- `W`: modified decomposed tensor after performing the contractions on the specified components.
+
+# Throws
+- `ArgumentError`: If at least one applies:
+  - `path` is not one of `""`, `"forward"`, or `"backward"`.
+  - `major` is not `"first"` or `"last"`.
+  - The decomposition `W` is empty (`L == 0`).
+  - `Λ` is a colon, but `path` is specified as non-empty.
+  - `Λ` is neither empty nor a colon and path is neither `"forward"` nor `"backward"`.
+  - `Λ` has duplicate entries.
+  - `Λ` contains invalid indices that do not match the expected range based on `path` and the number of factors in `W`.
+
+"""
+
 function decskp!(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number,N}
 	if path ∉ ("","forward","backward")
 		throw(ArgumentError("the value of the keyword argument path should be \"\" (default, accepted only for empty Λ and for Λ=:), \"forward\" or \"backward\""))
@@ -631,6 +662,39 @@ function decskp!(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last"
 end
 
 decskp!(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N} = decskp!(W, :; path=path, major=major)
+
+"""
+    decskp(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number,N}
+
+Perform a sequential contraction of selected components of a decomposed tensor `W` based on specified indices `Λ`, a path (`"forward"`, `"backward"`, or `""`), and a major contraction direction.
+
+# Arguments
+- `W::Dec{T, N}`: decomposed tensor object of type `Dec` with elements of type `T` (a subtype of `Number`), where `N` is the number of dimensions.
+- `Λ::Indices`: reference numbers specifying which components of the tensor `W` to contract. Can be a colon `Colon` (indicating all indices), a `Vector{Int}`, or other types convertible to an index vector.
+- `path::String=""`: keyword argument specifying the order of contraction. 
+  - `""` (default): Approved only if `Λ` is empty or `Λ` is a colon.
+  - `"forward"`: Contraction of components in a forward sequence.
+  - `"backward"`: Contraction of components in a backward sequence.
+- `major::String="last"`: keyword argument determining the primary direction for the contraction operation.
+  - `"last"` (default): Contraction focuses on last dimension.
+  - `"first"`: Contraction focuses on first dimension.
+
+# Returns
+- `U`: result of contracting the selected components of `W` based on the provided indices `Λ` and the specified path and major direction.
+
+# Throws
+- `ArgumentError`: If at least one applies:
+  - `path` is not one of `""`, `"forward"`, or `"backward"`.
+  - `major` is not `"first"` or `"last"`.
+  - The decomposition `W` is empty (`L == 0`).
+  - `Λ` is empty.
+  - `Λ` is not a contiguous set of integers.
+  - `Λ` is a colon, but `path` is specified as non-empty.
+  - `Λ` is neither empty nor a colon and path is not specified (`"forward"`, or `"backward"`) .
+  - `Λ` has duplicate entries.
+  - `Λ` contains invalid indices that do not match the expected range based on `path` and the number of factors in `W`.
+
+"""
 
 function decskp(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number,N}
 	if path ∉ ("","forward","backward")
@@ -843,6 +907,38 @@ function dechp(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N}
 	W = [ factorhp(U[ℓ], V[ℓ]) for ℓ ∈ 1:L ]
 	return W
 end
+
+"""
+    decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC, N}
+
+Perform a QR decomposition of the components of a decomposed tensor `W` with specified indices `Λ`, following a given path, and optionally using pivoting.
+
+# Arguments
+- `W::Dec{T, N}`: decomposed tensor object of type `Dec` (Vector{Factor{T,N}} where {T<:Number,N}) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `Λ::Indices`: reference numbers specifying which components of the tensor `W` to apply the QR decomposition to. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}`.
+- `pivot::Bool=false`: keyword argument indicating whether pivoting should be used in the QR decomposition.
+- `path::String=""`: keyword argument specifying the order of decomposition. 
+  - `""` (default): The path is deduced from `Λ` if possible.
+  - `"forward"`: Performs decomposition in a forward sequence.
+  - `"backward"`: Performs decomposition in a backward sequence.
+- `returnRfactors::Bool=false`: keyword argument indicating whether to return the `R` factors from the QR decomposition along with the modified tensor `W`.
+
+# Returns
+- `W`: modified decomposed tensor after performing the QR decomposition on its components.
+- `Rfactors` (optional): vector of `Matrix{T}` containing the `R` factors from the QR decompositions; if `returnRfactors` is `true`.
+
+# Throws
+- `ArgumentError`: If any of the following conditions are met:
+  - The decomposition `W` is empty (`L == 0`).
+  - `path` is not one of `""`, `"forward"`, or `"backward"`.
+  - `path` cannot be deduced from `Λ` when `path` is `""`.
+  - `Λ` contains duplicate entries.
+  - `Λ` is not a contiguous set of integers.
+  - `Λ` is out of the valid range for the indices of `W`.
+  - `Λ` is neither sorted in ascending nor in descending order leading to inconsitency with either `path`.
+  - `Λ` is not sorted in a consistent order with the `path` (ascending order matches "forward"` `path`; descending order matches `"backward"` `path`).
+
+"""
 
 function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N}
 	L = declength(W); decrank(W)
