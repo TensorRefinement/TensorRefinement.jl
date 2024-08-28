@@ -406,7 +406,7 @@ end
 Perform a Kronecker product of multiple factors (optionally raised to specified nonnegative integer exponents).
 
 # Arguments
-- `U::Union{Factor{T, N}, Pair{Factor{T, N}, Int}}`: first factor can either be a `Factor` type or a pair `(Factor, Int)`. If given as a pair, the integer is the exponent for the respective factor in the Kronecker product.
+- `U::Union{Factor{T, N}, Pair{Factor{T, N}, Int}}`: first factor can either be a [`Factor`](@ref) type or a pair `(Factor, Int)`. If given as a pair, the integer is the exponent for the respective factor in the Kronecker product.
 - `V::Vararg{Union{Factor{T, N}, Pair{Factor{T, N}, Int}}, M}`: variable number of additional factors, each of which can also be either a `Factor` type or a pair `(Factor, Int)`. The same usage for the integer applies as in the above line.
 
 # Returns
@@ -572,7 +572,7 @@ end
 Perform a QR or LQ factorization of the tensor `U`, depending on the value of the keyword argument `rev` (reverse). 
 
 # Arguments
-- `U::Factor{T, N}`: mutable factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: mutable factor of type [`Factor`](@ref) with elements of type [`T`](@ref) (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 - `rev::Bool=false`: keyword argument that determines the type of factorization. If `false`, performs a QR factorization; if `true`, performs an LQ factorization.
 - `factf`: keyword argument that specifies the chosen factorization function. By default, `LinearAlgebra.qr!` and `LinearAlgebra.lq!` are used respectively (depending on `rev`).
 

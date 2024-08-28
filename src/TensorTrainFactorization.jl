@@ -601,7 +601,7 @@ end
 Perform sequential contraction of components of a decomposed tensor `W` based on specified indices `Λ`, following a specified path and contraction order.
 
 # Arguments
-- `W::Dec{T, N}`: decomposed tensor object of type `Dec` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `W::Dec{T, N}`: decomposed tensor object of type [`Dec`](@ref) with elements of type [`T`](@ref) (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 - `Λ::Indices`: reference numbers specifying which components of (the tensor) `W` to contract. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}` specifying particular indices.
 - `path::String=""`: keyword argument specifying the order of contraction. 
   - `""` (default): path can be deduced from `Λ` if `Λ` is a colon or empty.
@@ -669,7 +669,7 @@ decskp!(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N} 
 Perform a sequential contraction of selected components of a decomposed tensor `W` based on specified indices `Λ`, a path (`"forward"`, `"backward"`, or `""`), and a major contraction direction.
 
 # Arguments
-- `W::Dec{T, N}`: decomposed tensor object of type `Dec` with elements of type `T` (a subtype of `Number`), where `N` is the number of dimensions.
+- `W::Dec{T, N}`: decomposed tensor object of type [`Dec`](@ref) with elements of type [`T`](@ref) (a subtype of `Number`), where `N` is the number of dimensions.
 - `Λ::Indices`: reference numbers specifying which components of the tensor `W` to contract. Can be a colon `Colon` (indicating all indices), a `Vector{Int}`, or other types convertible to an index vector.
 - `path::String=""`: keyword argument specifying the order of contraction. 
   - `""` (default): Approved only if `Λ` is empty or `Λ` is a colon.
@@ -914,7 +914,7 @@ end
 Perform a QR decomposition of the components of a decomposed tensor `W` with specified indices `Λ`, following a given path, and optionally using pivoting.
 
 # Arguments
-- `W::Dec{T, N}`: decomposed tensor object of type `Dec` (Vector{Factor{T,N}} where {T<:Number,N}) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `W::Dec{T, N}`: decomposed tensor object of type [`Dec`](@ref) (Vector{Factor{T,N}} where {T<:Number,N}) with elements of type [`T`](@ref) (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 - `Λ::Indices`: reference numbers specifying which components of the tensor `W` to apply the QR decomposition to. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}`.
 - `pivot::Bool=false`: keyword argument indicating whether pivoting should be used in the QR decomposition.
 - `path::String=""`: keyword argument specifying the order of decomposition. 
