@@ -11,25 +11,87 @@ export decinsertidentity!
 export decskp!, decskp, decmp, deckp, decaxpby!, decadd!, decaxpby, decadd, dechp
 export decqr!, decsvd!
 
+
+"""
+`DecSize is an alias for a `Matrix{Int}`
+"""
 const DecSize = Matrix{Int}
+"""
+`DecRank is an alias for a `Vector{Int}`
+"""
 const DecRank = Vector{Int}
+
+"""
+`Dec is an alias for a `Vector{Factor{T,N}}`
+"""
 const Dec{T,N} = Vector{Factor{T,N}} where {T<:Number,N}
+
+"""
+`VectorDec{T} is an alias for Vector{VectorFactor{T}} `
+"""
 const VectorDec{T} = Vector{VectorFactor{T}} where T<:Number
+
+"""
+`MatrixDec{T} is an alias for Vector{MatrixFactor{T}} `
+"""
 const MatrixDec{T} = Vector{MatrixFactor{T}} where T<:Number
 
+"""
+    function checkndims(d::Int)
 
+Check the correctness of the numbers of dimensions.
+
+# Arguments
+- `d::Int`: Input dimension.
+
+# Returns
+- No Return. Function merely flags negative dimensions.
+
+# Throws
+- `ArgumentError`: If `d` is negative.
+"""
 function checkndims(d::Int)
 	if d < 0
 		throw(ArgumentError("d should be nonnegative"))
 	end
 end
 
+"""
+    function checklength(L::Int)
+
+Check the correctness of the length L.
+
+# Arguments
+- `L::Int`: Input length.
+
+# Returns
+- No Return. Function merely flags negative length.
+
+# Throws
+- `ArgumentError`: If `L` is negative.
+"""
 function checklength(L::Int)
 	if L < 0
 		throw(ArgumentError("the number of factors should be nonnegative"))
 	end
 end
 
+"""
+    function checkndims(d::Vector{Int})
+
+Check whether a given vector exhibits uniform values.
+
+# Arguments
+- `d::Vector{Int}`: Input vector of integers.
+
+# Returns
+- No Return. Function merely flags incorrent vectors.
+
+# Throws
+- `ArgumentError`: If `d` does not contain elements.
+- `BoundsError`: If the elements of `d` are negative or zero.
+- `ArgumentError`: If the values in the dimension vector differ.
+"""
 function checkndims(d::Vector{Int})
 	L = length(d)
 	if L == 0
@@ -43,6 +105,27 @@ function checkndims(d::Vector{Int})
 	end
 end
 
+"""
+    function checksize(n::DecSize; len::Int=0, dim::Int=0)
+
+Check the correctness of a given size matrix with integer entries (Type: Decsize).
+
+# Arguments
+- `n::DecSize`: Input size matrix with integer entries.
+- `len::Int=0`: Length of the size matrix. By default, it is 0.
+- `dim::Int=0`: Dimension of the size matrix. By default, it is 0.
+
+# Returns
+- No Return. Function merely flags incorrent size matrix.
+
+# Throws
+- `ArgumentError`: If `n` does not contain elements.
+- `ArgumentError`: If `n` contains negative or zero elements.
+- `ArgumentError`: If the number of factors is negative or zero.
+- `ArgumentError`: If the number of mode dimensions is negative or zero.
+- `ArgumentError`: If the number of rows is incorrect.
+- `ArgumentError`: If the number of columns is incorrect.
+"""
 function checksize(n::DecSize; len::Int=0, dim::Int=0)
 	if length(n) == 0
 		throw(ArgumentError("the size matrix is empty"))
@@ -64,6 +147,23 @@ function checksize(n::DecSize; len::Int=0, dim::Int=0)
 	end
 end
 
+"""
+    checkrank(r::DecRank; len::Int=0)
+
+Check the correctness of a given rank vector with integer entries (Type: DecRank).
+
+# Arguments
+- `r::DecRank`: Input rank vector with integer entries.
+- `len::Int=0`: Length of the size matrix. By default, it is 0.
+
+# Returns
+- No Return. Function merely flags incorrent rank vectors.
+
+# Throws
+- `ArgumentError`: If `r` does not contain at least two elements.
+- `ArgumentError`: If `r` contains negative elements.
+- `ArgumentError`: If the number of elements in the rank vector is incorrect.
+"""
 function checkrank(r::DecRank; len::Int=0)
 	if length(r) < 2
 		throw(ArgumentError("the rank vector should contain at least two elements"))
@@ -76,6 +176,24 @@ function checkrank(r::DecRank; len::Int=0)
 	end
 end
 
+"""
+    checkranks(p::Vector{Int}, q::Vector{Int}; len::Int=0)
+
+Check the correctness of two given rank vectors with integer entries.
+
+# Arguments
+- `p::Vector{Int}`: First input vector with integer entries.
+- `q::Vector{Int}`: Second input vector with integer entries.
+- `len::Int=0`: Length of the vectors. By default, it is 0.
+
+# Returns
+- No Return. Function merely flags incorrent rank vectors.
+
+# Throws
+- `ArgumentError`: If `p` and `q` do not have the same length.
+- `ArgumentError`: If `p` or `q` contain negative elements.
+- `ArgumentError`: If the number of elements in the rank vectors is incorrect.
+"""
 function checkranks(p::Vector{Int}, q::Vector{Int}; len::Int=0)
 	if length(p) ≠ length(q)
 		throw(ArgumentError("the rank vectors should have the same length"))
@@ -91,6 +209,20 @@ function checkranks(p::Vector{Int}, q::Vector{Int}; len::Int=0)
 	end
 end
 
+"""
+    function declength(U::Dec{T,N}) where {T<:Number,N}
+
+Check the correctness of two given rank vectors with integer entries.
+
+# Arguments
+- `U::Dec{T,N}`: Decomposition of `N` Factors of type `Factor`.
+
+# Returns
+- An integer: the length of the decomposition.
+
+# Throws
+- `ArgumentError`: If `L` is negative.
+"""
 function declength(U::Dec{T,N}) where {T<:Number,N}
 	L = length(U)
 	checklength(L)
@@ -601,7 +733,7 @@ end
 Perform sequential contraction of components of a decomposed tensor `W` based on specified indices `Λ`, following a specified path and contraction order.
 
 # Arguments
-- `W::Dec{T, N}`: decomposed tensor object of type [`Dec`](@ref) with elements of type [`T`](@ref) (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `W::Dec{T, N}`: decomposed tensor object of type `Dec` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 - `Λ::Indices`: reference numbers specifying which components of (the tensor) `W` to contract. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}` specifying particular indices.
 - `path::String=""`: keyword argument specifying the order of contraction. 
   - `""` (default): path can be deduced from `Λ` if `Λ` is a colon or empty.
@@ -625,7 +757,6 @@ Perform sequential contraction of components of a decomposed tensor `W` based on
   - `Λ` contains invalid indices that do not match the expected range based on `path` and the number of factors in `W`.
 
 """
-
 function decskp!(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number,N}
 	if path ∉ ("","forward","backward")
 		throw(ArgumentError("the value of the keyword argument path should be \"\" (default, accepted only for empty Λ and for Λ=:), \"forward\" or \"backward\""))
@@ -669,7 +800,7 @@ decskp!(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N} 
 Perform a sequential contraction of selected components of a decomposed tensor `W` based on specified indices `Λ`, a path (`"forward"`, `"backward"`, or `""`), and a major contraction direction.
 
 # Arguments
-- `W::Dec{T, N}`: decomposed tensor object of type [`Dec`](@ref) with elements of type [`T`](@ref) (a subtype of `Number`), where `N` is the number of dimensions.
+- `W::Dec{T, N}`: decomposed tensor object of type `Dec` with elements of type `T` (a subtype of `Number`), where `N` is the number of dimensions.
 - `Λ::Indices`: reference numbers specifying which components of the tensor `W` to contract. Can be a colon `Colon` (indicating all indices), a `Vector{Int}`, or other types convertible to an index vector.
 - `path::String=""`: keyword argument specifying the order of contraction. 
   - `""` (default): Approved only if `Λ` is empty or `Λ` is a colon.
@@ -695,7 +826,6 @@ Perform a sequential contraction of selected components of a decomposed tensor `
   - `Λ` contains invalid indices that do not match the expected range based on `path` and the number of factors in `W`.
 
 """
-
 function decskp(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number,N}
 	if path ∉ ("","forward","backward")
 		throw(ArgumentError("the value of the keyword argument path should be \"\" (default, accepted only for empty Λ and for Λ=:), \"forward\" or \"backward\""))
@@ -914,7 +1044,7 @@ end
 Perform a QR decomposition of the components of a decomposed tensor `W` with specified indices `Λ`, following a given path, and optionally using pivoting.
 
 # Arguments
-- `W::Dec{T, N}`: decomposed tensor object of type [`Dec`](@ref) (Vector{Factor{T,N}} where {T<:Number,N}) with elements of type [`T`](@ref) (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `W::Dec{T, N}`: decomposed tensor object of type `Dec` (Vector{Factor{T,N}} where {T<:Number,N}) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 - `Λ::Indices`: reference numbers specifying which components of the tensor `W` to apply the QR decomposition to. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}`.
 - `pivot::Bool=false`: keyword argument indicating whether pivoting should be used in the QR decomposition.
 - `path::String=""`: keyword argument specifying the order of decomposition. 
@@ -939,7 +1069,6 @@ Perform a QR decomposition of the components of a decomposed tensor `W` with spe
   - `Λ` is not sorted in a consistent order with the `path` (ascending order matches "forward"` `path`; descending order matches `"backward"` `path`).
 
 """
-
 function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N}
 	L = declength(W); decrank(W)
 	if L == 0
@@ -1005,6 +1134,8 @@ function decqr!(W::Dec{T,N}, Λ::Indices; pivot::Bool=false, path::String="", re
 end
 
 decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path, returnRfactors=returnRfactors)
+
+
 
 
 function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
