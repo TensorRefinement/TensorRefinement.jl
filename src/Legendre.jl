@@ -4,16 +4,66 @@ using TensorRefinement.Auxiliary, ..TensorTrain, LinearAlgebra
 
 export legeval, legneval, legtolegn, legntoleg, legdiff, legndiff, legref, legnref, legdec, legdeceval!
 
+"""
+    legtolegn(::Type{T}, r::Int) where {T<:AbstractFloat}
+
+Construct a diagonal matrix that transforms coefficients in the Legendre polynomial basis 
+to coefficients in the normalized Legendre polynomial basis.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `AbstractFloat`) for the matrix elements.
+- `r::Int`: Size of the matrix.
+
+# Returns
+- `Diagonal{T}`: Diagonal matrix of size `r` x `r` containing the scaling factors 
+  to convert from Legendre polynomials to normalized Legendre polynomials.
+
+# Throws
+- `ArgumentError`: If `r` is negative.
+"""
 function legtolegn(::Type{T}, r::Int) where {T<:AbstractFloat}
 	u = [ 1/sqrt(j+one(T)/2) for j ∈ 0:r-1 ]
 	Diagonal(u)
 end
 
+"""
+    legntoleg(::Type{T}, r::Int) where {T<:AbstractFloat}
+
+Construct a diagonal matrix that transforms coefficients in the normalized Legendre polynomial basis 
+to coefficients in the standard Legendre polynomial basis.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `AbstractFloat`) for the matrix elements.
+- `r::Int`: Size of the matrix.
+
+# Returns
+- `Diagonal{T}`: Diagonal matrix of size `r` x `r` containing the scaling factors 
+  to convert from normalized Legendre polynomials to Legendre polynomials.
+
+# Throws
+- `ArgumentError`: If `r` is negative.
+"""
 function legntoleg(::Type{T}, r::Int) where {T<:AbstractFloat}
 	u = [ sqrt(j+one(T)/2) for j ∈ 0:r-1 ]
 	Diagonal(u)
 end
 
+"""
+    legeval(t::Vector{T}, r::Int) where {T<:AbstractFloat}
+
+Evaluate the first `r` Legendre polynomials at the points specified in the vector `t`.
+
+# Arguments
+- `t::Vector{T}`: Vector of points at which to evaluate the Legendre polynomials.
+- `r::Int`: Number of Legendre polynomials to evaluate.
+
+# Returns
+- `Matrix{T}`: An `n` x `r` matrix `V`, where `n` is the length of `t`. The entry `V[i,j]` 
+  contains the value of the `(j-1)`-th Legendre polynomial evaluated at `t[i]`.
+
+# Throws
+- `ArgumentError`: If `r` is negative.
+"""
 function legeval(t::Vector{T}, r::Int) where {T<:AbstractFloat}
 	n = length(t)
 	V = zeros(T, n, r)
@@ -27,8 +77,39 @@ function legeval(t::Vector{T}, r::Int) where {T<:AbstractFloat}
 	V
 end
 
+"""
+    legneval(t::Vector{T}, r::Int) where {T<:AbstractFloat}
+
+Evaluate the first `r` normalized Legendre polynomials at the points specified in the vector `t`.
+
+# Arguments
+- `t::Vector{T}`: Vector of points at which to evaluate the normalized Legendre polynomials.
+- `r::Int`: Number of normalized Legendre polynomials to evaluate.
+
+# Returns
+- `Matrix{T}`: An `n` x `r` matrix `V`, where `n` is the length of `t`. The entry `V[i,j]` 
+  contains the value of the `(j-1)`-th normalized Legendre polynomial evaluated at `t[i]`.
+
+# Throws
+- `ArgumentError`: If the number of degrees of freedom `r` is not positive.
+"""
 legneval(t::Vector{T}, r::Int) where {T<:AbstractFloat} = legeval(t, r)*legntoleg(T, r)
 
+"""
+    legdiff(::Type{T}, r::Int) where {T<:AbstractFloat}
+
+Construct a differentiation matrix for Legendre polynomials of degree up to `r-1`.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `AbstractFloat`) for the matrix elements.
+- `r::Int`: Number of degrees of freedom (DOFs), i.e., the size of the matrix.
+
+# Returns
+- `Matrix{T}`: Matrix of size `r` x `r` representing the differentiation operator for Legendre polynomials of degree up to `r-1`.
+
+# Throws
+- `ArgumentError`: If `r` is not positive.
+"""
 function legdiff(::Type{T}, r::Int) where {T<:AbstractFloat}
 	if r ≤ 0
 		throw(ArgumentError("the number of DOFs should be positive"))
@@ -43,9 +124,39 @@ function legdiff(::Type{T}, r::Int) where {T<:AbstractFloat}
 	W
 end
 
+"""
+    legndiff(::Type{T}, r::Int) where {T<:AbstractFloat}
+
+Construct a differentiation matrix for normalized Legendre polynomials of degree up to `r-1`.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `AbstractFloat`) for matrix elements.
+- `r::Int`: Number of degrees of freedom (DOFs), i.e., the size of the matrix.
+
+# Returns
+- `Matrix{T}`: Matrix of size `r` x `r` representing the differentiation operator for normalized Legendre polynomials of degree up to `r-1`.
+
+# Throws
+- `ArgumentError`: If `r` is not positive.
+"""
 legndiff(::Type{T}, r::Int) where {T<:AbstractFloat} = legtolegn(T, r)*legdiff(T, r)*legntoleg(T, r)
 
+"""
+    legref(ξ::T, η::T, r::Int) where {T<:AbstractFloat}
 
+Compute a matrix related to the Legendre polynomials over a reference interval, parameterized by `ξ` and `η`.
+
+# Arguments
+- `ξ::T`: Float representing one of the parameters for the transformation.
+- `η::T`: Float representing the other parameter for the transformation.
+- `r::Int`: Number of degrees of freedom (DOFs), i.e., the size of the matrix.
+
+# Returns
+- `Matrix{T}`: An `r` x `r` matrix `W` that encodes the transformation in the Legendre polynomial basis for given parameters `ξ` and `η`.
+
+# Throws
+- `ArgumentError`: If `r` is less than 1.
+"""
 function legref(ξ::T, η::T, r::Int) where {T<:AbstractFloat}
 	W = zeros(T, r, r)
 	W[1,1] = 1
@@ -65,6 +176,22 @@ function legref(ξ::T, η::T, r::Int) where {T<:AbstractFloat}
 	W
 end
 
+"""
+    legref(::Type{T}, r::Int) where {T<:AbstractFloat}
+
+Compute a matrix based on the Legendre polynomials that encodes specific transformations or relations.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `AbstractFloat`) for matrix elements.
+- `r::Int`: Number of degrees of freedom (DOFs), i.e., the size of the matrix.
+
+# Returns
+- `Array{T,3}`: An `r` x `r` x `2` array `W` where the first slice (`W[:,:,1]`) represents the transformation matrix in a standard basis 
+   and the second slice (`W[:,:,2]`) ...
+
+# Throws
+- `ArgumentError`: If `r` is less than 1.
+"""
 function legref(::Type{T}, r::Int) where {T<:AbstractFloat}
 	W = zeros(T, r, r)
 	if r ≥ 1
@@ -93,6 +220,22 @@ function legref(::Type{T}, r::Int) where {T<:AbstractFloat}
 	W
 end
 
+"""
+    lengref(::Type{T}, r::Int) where {T<:AbstractFloat}
+
+Compute a matrix based on the normalized Legendre polynomials that encodes specific transformations or relations.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `AbstractFloat`) for matrix elements.
+- `r::Int`: Number of degrees of freedom (DOFs), i.e., the size of the matrix.
+
+# Returns
+- `Array{T,3}`: An `r` x `r` x `2` array `W` where the first slice (`W[:,:,1]`) represents the transformation matrix in a standard basis 
+   and the second slice (`W[:,:,2]`) ...
+
+# Throws
+- `ArgumentError`: If `r` is less than 1.
+"""
 legnref(::Type{T}, r::Int) where {T<:AbstractFloat} = modemul(legref(T, r), Pair(1,legtolegn(T, r)), Pair(2,transpose(legntoleg(T, r))))
 
 for fname ∈ (:legeval,:legneval)
@@ -136,7 +279,22 @@ for fname ∈ (:legdiff,:legndiff)
 	end
 end
 
+"""
+    legdec(c::Vector{T}, L::Int; major::String="last") where {T<:AbstractFloat}
 
+Construct a decomposition based on the Legendre polynomials for a given vector of coefficients `c` and a specified number of factors `L`.
+
+# Arguments
+- `c::Vector{T}`: Vector of coefficients for the Legendre polynomials. Length of this vector (`r`) determines the degree of the polynomial (maximal `r-1`).
+- `L::Int`: Number of factors in the decomposition.
+- `major::String`: Specifies the ordering of the decomposition, either "last" (default) or "first".
+
+# Returns
+- `Dec{T,N}`: Decomposition object based on the Legendre polynomials and the given vector of coefficients `c`.
+
+# Throws
+- `ArgumentError`: If `major` is neither "first" nor "last".
+"""
 function legdec(c::Vector{T}, L::Int; major::String="last") where {T<:AbstractFloat}
 	if major ∉ ("first", "last")
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))
@@ -151,7 +309,22 @@ function legdec(c::Vector{T}, L::Int; major::String="last") where {T<:AbstractFl
 	U
 end
 
+"""
+    legdeceval!(U::Dec{T,N}, t::Vector{T}; major::String="last") where {T<:AbstractFloat,N}
 
+Evaluate a Legendre polynomial decomposition `U` at a set of points `t`, adding the reshaped evaluation matrix as a factor to `U` in place.
+
+# Arguments
+- `U::Dec{T,N}`: Decomposition representing a Legendre polynomial; will be evaluated and modified in place.
+- `t::Vector{T}`: Vector of points at which to evaluate the polynomial.
+- `major::String`: Specifies the ordering of the decomposition, either "last" (default) or "first". 
+
+# Returns
+- `Dec{T,N}`: Modified decomposition object `U`, now including a factor based on the reshaped evaluation matrix at points `t`.
+
+# Throws
+- `ArgumentError`: If `major` is neither "first" nor "last".
+"""
 function legdeceval!(U::Dec{T,N}, t::Vector{T}; major::String="last") where {T<:AbstractFloat,N}
 	if major ∉ ("first", "last")
 		throw(ArgumentError("major should be either \"last\" (default) or \"first\""))

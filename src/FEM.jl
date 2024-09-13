@@ -4,6 +4,27 @@ using LinearAlgebra, TensorRefinement.Auxiliary, ..TensorTrain
 
 export extdn, extdd, diffdn, diffdd, dint, dintf, bpxdn, bpxdd, extmix, diffbpxdn, diffbpxdd
 
+"""
+    extdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Generate a matrix decomposition which specifies ... based on the parameters provided.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `ℓ::Int`: Index of the current factor.
+- `d::Int`: ...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `P` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is not positive.
+- `ArgumentError`: If `ℓ` is not in `0:L`.
+- `ArgumentError`: If `d` is not positive.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function extdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -40,6 +61,28 @@ function extdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where 
 	P
 end
 
+"""
+    extdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Generate a matrix decomposition specifiying... 
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `ℓ::Int`: Index of the current factor.
+- `d::Int`: Size of the ...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `P` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is not positive.
+- `ArgumentError`: If `ℓ` is not in `1:L`.
+- `ArgumentError`: If `d` is not positive.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+
+"""
 function extdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -77,6 +120,28 @@ function extdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where 
 	P
 end
 
+"""
+    diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Construct a matrix decomposition that represents ...
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `ℓ::Int`: Index of the current factor.
+- `d::Int`: Size of the ...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `M` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is negative.
+- `ArgumentError`: If `ℓ` is not in `0:L`.
+- `ArgumentError`: If `d` is not positive.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+
+"""
 function diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 0
 		throw(ArgumentError("L should be nonnegative"))
@@ -154,8 +219,50 @@ function diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	(major == "last") && decreverse!(M)
 	M
 end
+
+"""
+    diffdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Sentence summarizing the function.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the ...
+- `major::String="last"`: Specifies the major axis ("first" or "last") for the operation. The default is `"last"`.
+
+# Returns
+Returns the result ....
+
+# Throws
+- `ArgumentError`: If `L` is negative.
+- `ArgumentError`: If `d` is not positive.
+- `ArgumentError`: If `major` is not `"first"` or `"last"`.
+"""
 diffdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC} = diffdn(T, L, L, d; major=major)
 
+"""
+    diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Construct a matrix decomposition representing ... based on the parameters provided.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `ℓ::Int`: Index of the current factor. Should be in the range `1:L`.
+- `d::Int`: Size of the...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `M` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `ℓ` is not in `1:L`.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+
+"""
 function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -233,8 +340,48 @@ function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	(major == "last") && decreverse!(M)
 	M
 end
+"""
+    diffdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Summary Sentence for function.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the...
+- `major::String="last"`: Specifies the major axis ("first" or "last") for the operation. The default is `"last"`.
+
+# Returns
+Returns the result...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 diffdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC} = diffdd(T, L, L, d; major=major)
 
+"""
+    dint(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="last") where {T<:FloatRC}
+
+Construct a decomposition representing integration ... with a given coefficient matrix `K`.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the ...
+- `K::AbstractMatrix{T}`: Coefficient matrix, should be of size `(d+1, d+1)`.
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `Dec{T,N}`: Decomposition `Λ` representing the integration.
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `K` is not of size `(d+1, d+1)`.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function dint(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -259,6 +406,27 @@ function dint(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="la
 	Λ
 end
 
+"""
+    dintf(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="last") where {T<:FloatRC}
+
+Construct a decomposition representing integration ... with a given coefficient matrix `K`.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the ...
+- `K::AbstractMatrix{T}`: Coefficient matrix, should be of size `(d+1, d+1)`.
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `Dec{T,N}`: Decomposition `Λ` representing the integration...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `K` is not of size `(d+1, d+1)`.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function dintf(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -283,6 +451,25 @@ function dintf(::Type{T}, L::Int, d::Int, K::AbstractMatrix{T}; major::String="l
 	Λ
 end
 
+"""
+    bpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Construct a decomposition representing ...
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `Dec{T,N}`: Decomposition `C` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function bpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -310,6 +497,25 @@ function bpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatR
 	C
 end
 
+"""
+    bpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Construct a decomposition representing ...
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the ... 
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `Dec{T,N}`: Decomposition `C` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function bpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -340,6 +546,27 @@ function bpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatR
 	C
 end
 
+"""
+    extmix(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Construct a decomposition representing ... for a given set of parameters.
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `ℓ::Int`: Current factor index (must be between 0 and L).
+- `d::Int`: Size of the...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `E` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `ℓ` is not in the range `0:L`.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function extmix(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -460,6 +687,26 @@ function extmix(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	E
 end
 
+"""
+    diffbpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Generate a decomposition representing ... using ...
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the ...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `M` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+
+"""
 function diffbpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))
@@ -546,6 +793,25 @@ function diffbpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:Fl
 	M
 end
 
+"""
+    diffbpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
+
+Generate decomposition representing ... using ...
+
+# Arguments
+- `::Type{T}`: Numeric type (subtype of `FloatRC`).
+- `L::Int`: Total number of factors in the decomposition.
+- `d::Int`: Size of the ...
+- `major::String`: Specifies the major dimension of the decomposition, either `"last"` (default) or `"first"`.
+
+# Returns
+- `MatrixDec{T}`: Matrix decomposition `M` representing ...
+
+# Throws
+- `ArgumentError`: If `L` is less than 1.
+- `ArgumentError`: If `d` is less than 1.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
+"""
 function diffbpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
 		throw(ArgumentError("L should be positive"))

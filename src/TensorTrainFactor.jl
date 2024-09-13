@@ -10,20 +10,20 @@ export factorqr!, factorqradd, factorsvd!
 
 
 """
-`Factorsize is an alias for a `Vector{Int}`
+`Factorsize` is an alias for a `Vector{Int}`.
 """
 const FactorSize = Vector{Int}
 
 """
-`Factor{T,N}` is an alias for `Array{T,N} where {T<:Number,N}`
+`Factor{T,N}` is an alias for `Array{T,N}`.
 """
 const Factor{T,N} = Array{T,N} where {T<:Number,N}
 """
-`VectorFactor{T}` is a 3D tensor with entries of type T`
+`VectorFactor{T}` is a 3D tensor with entries of type `T`.
 """
 const VectorFactor{T} = Factor{T,3} where T<:Number
 """
-`MatrixFactor{T}` is a 4D tensor with entries of type T`
+`MatrixFactor{T}` is a 4D tensor with entries of type `T`.
 """
 const MatrixFactor{T} = Factor{T,4} where T<:Number
 
@@ -201,8 +201,66 @@ function factor(U::Matrix{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}
 	U
 end
 
+"""
+    factor(U::Matrix{T}, m::Union{Int, NTuple{M,Int}, Vector{Int}, Vector{Any}}, 
+           n::Union{Int, NTuple{N,Int}, Vector{Int}, Vector{Any}}) where {T<:Number, M, N}
+
+Reshape a matrix `U` into a multi-dimensional array with mode sizes `m` and `n` and use `1:length(m)+length(n)` as permutation of dimensions.
+
+Function is a variant of the more general `factor` function with an automatic permutation sequence `1:length(m)+length(n)` applied to the reshaped matrix.
+
+# Arguments
+- `U::Matrix{T}`: Input matrix with elements of type `T`.
+- `m::Union{Int, NTuple{M,Int}, Vector{Int}, Vector{Any}}`: Mode sizes for the first dimension of `U`.
+- `n::Union{Int, NTuple{N,Int}, Vector{Int}, Vector{Any}}`: Mode sizes for the second dimension of `U`.
+
+# Returns
+- A reshaped and permuted factor based on the mode sizes `m` and `n` with a permutation `1:length(m)+length(n)`.
+
+# Throws
+- `ArgumentError`: If `m` or `n` is not an integer, a vector or tuple of integers, or an empty vector or tuple.
+- `DimensionMismatch`: If the dimensions of `U` are not divisible by the products of `m` or `n`.
+"""
 factor(U::Matrix{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}, n::Union{Int,NTuple{N,Int},Vector{Int},Vector{Any}}) where {T<:Number,M,N} = factor(U, m, n, collect(1:length(m)+length(n)))
+
+"""
+    factor(U::Vector{T}, m::Union{Int, NTuple{M,Int}, Vector{Int}, Vector{Any}}, 
+           π::Union{NTuple{M,Int}, Vector{Int}}) where {T<:Number, M}
+
+Reshape a vector `U` into a two-dimensional array, then reshape it further into a multi-dimensional array based on the mode sizes `m` and apply the permutation `π`.
+
+Function is a variant of the more general `factor` function, which allows reshaping a vector `U` into a matrix and then applying mode sizes and a custom permutation.
+
+# Arguments
+- `U::Vector{T}`: Input vector with elements of type `T`.
+- `m::Union{Int, NTuple{M,Int}, Vector{Int}, Vector{Any}}`: Mode sizes for the reshaped array.
+- `π::Union{NTuple{M,Int}, Vector{Int}}`: Permutation of the mode dimensions.
+
+# Returns
+- A reshaped and permuted factor based on the mode sizes `m` and permutation `π`.
+
+# Throws
+- `ArgumentError`: If `m` is not an integer, a vector or tuple of integers, or an empty vector or tuple.
+"""
 factor(U::Vector{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}, π::Union{NTuple{M,Int},Vector{Int}}) where {T<:Number,M} = factor(U[:,:], m, (), π)
+
+"""
+    factor(U::Vector{T}, m::Union{Int, NTuple{M,Int}, Vector{Int}, Vector{Any}}) where {T<:Number, M}
+
+Reshape a vector `U` into a two-dimensional array, then reshape it into a multi-dimensional array based on the mode sizes `m` with a natural permutation.
+
+Function is a variant of the more general `factor` function, which reshapes a vector `U` into a matrix and then into an array with mode sizes `m`. It also applies a natural permutation `1:length(m)`.
+
+# Arguments
+- `U::Vector{T}`: Input vector with elements of type `T`.
+- `m::Union{Int, NTuple{M,Int}, Vector{Int}, Vector{Any}}`: Mode sizes for the reshaped array.
+
+# Returns
+- A reshaped and permuted factor based on the mode sizes `m` with a natural permutation.
+
+# Throws
+- `ArgumentError`: If `m` is not an integer, a vector or tuple of integers, or an empty vector or tuple.
+"""
 factor(U::Vector{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}) where {T<:Number,M} = factor(U[:,:], m, (), collect(1:length(m)))
 
 """
@@ -282,6 +340,10 @@ end
     block(U::Factor{T,N}, α::Int, β::Int) where {T<:Number, N}
 
 Extracts a specific block from the factor `U` based on the provided rank indices `α` and `β`.
+
+Detailed description:
+Function reshapes given factor into 3D array, selects all entries along second dimension, where `α` and `β` specify the first
+and third dimension, and reshapes selected entries into a block with sizes equivalent to the mode dimensions of the initial array.
 
 # Arguments
 - `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
@@ -499,7 +561,6 @@ Permute the mode dimensions of the factor `U` according to the permutation `π`.
 # Throws
 - `ArgumentError`: If `U` has fewer than one mode dimension.
 - `ArgumentError`: If `π` is not a valid permutation of the mode dimensions of `U`.
-- `ArgumentError`: If `π` is not a valid permutation.
 """
 function factormodetranspose(U::Factor{T,N}, π::NTuple{K,Int}) where {T<:Number,N,K}
 	d = N-2
@@ -516,7 +577,43 @@ function factormodetranspose(U::Factor{T,N}, π::NTuple{K,Int}) where {T<:Number
 	permutedims(U, prm)
 end
 
+"""
+    factormodetranspose(U::Factor{T,N}, π::Vector{Int}) where {T<:Number,N}
+
+Permute the mode dimensions of the factor `U` according to the permutation `π`, where `π` is passed as a vector instead of a tuple.
+
+Function acts as a wrapper around `factormodetranspose` to convert the vector `π` to a tuple and then call the main method.
+
+# Arguments
+- `U::Factor{T,N}`: Input factor with elements of type `T` and `N` dimensions.
+- `π::Vector{Int}`: Permutation of the mode dimensions of `U`. Should contain exactly `N - 2` elements to allow for permutation of the mode dimensions.
+
+# Returns
+- New factor resulting from permuting the mode dimensions of `U` according to `π`.
+
+# Throws
+- `ArgumentError`: If `U` has fewer than one mode dimension.
+- `ArgumentError`: If `π` is not a valid permutation of the mode dimensions of `U`.
+"""
 factormodetranspose(U::Factor{T,N}, π::Vector{Int}) where {T<:Number,N} = factormodetranspose(U, Tuple(π))
+
+"""
+    factormodetranspose(U::Factor{T,2}) where {T<:Number}
+
+Transpose the two dimensions of the factor `U`, assuming `U` has exactly two dimensions.
+
+Function is a specialized version of `factormodetranspose` for the case when `U` has two dimensions.
+It transposes `U` by swapping the two dimensions, equivalent to the permutation `(2, 1)`.
+
+# Arguments
+- `U::Factor{T,2}`: Two-dimensional factor with elements of type `T`.
+
+# Returns
+- A new factor obtained by transposing the two dimensions of `U`.
+
+# Throws
+- `ArgumentError`: If `U` is not two-dimensional.
+"""
 factormodetranspose(U::Factor{T,2}) where {T<:Number} = factormodetranspose(U, (2,1))
 
 """
@@ -543,6 +640,23 @@ function factormodereshape(U::Factor{T,N}, n::FactorSize) where {T<:Number,N}
 	reshape(U, p, n..., q)
 end
 
+"""
+    factormodereshape(U::Factor{T,N}, n::Vector{Any}) where {T<:Number,N}
+
+Reshape the mode dimensions of the factor `U` to the specified sizes in `n`, which defaults to an empty vector if `n` is of type `Vector{Any}`.
+
+Function acts as a specialized version of [`factormodereshape`](@ref) where the input vector `n` is replaced with an empty `Vector{Int}()`. 
+
+# Arguments
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
+- `n::Vector{Any}`: Vector specifying the new sizes for the mode dimensions.
+
+# Returns
+- A reshaped factor where the mode dimensions are modified, which defaults to use an empty vector of integers for mode reshaping.
+
+# Throws
+- `DimensionMismatch`: If the product of `n` does not equal the product of the current mode sizes of `U`.
+"""
 factormodereshape(U::Factor{T,N}, n::Vector{Any}) where {T<:Number,N} = factormodereshape(U, Vector{Int}())
 
 """ 
@@ -671,6 +785,21 @@ function factorcontract(U::S, V::Factor{T,N}) where {T<:Number,N,S<:AbstractMatr
 	reshape(W, p, n..., q)
 end
 
+"""
+    factorcontract(U::S, V::R) where {T<:Number, S<:AbstractMatrix{T}, R<:AbstractMatrix{T}}
+
+Perform a matrix multiplication (contraction) of two factors `U` and `V`, which are matrices.
+
+# Arguments
+- `U::S`: First input matrix of type `AbstractMatrix{T}` with elements of type `T`.
+- `V::R`: Second input matrix of type `AbstractMatrix{T}` with elements of type `T`.
+
+# Returns
+- The result of matrix multiplication `U * V`, which contracts the two input matrices.
+
+# Throws
+- `DimensionMismatch`: If the number of columns in `U` does not match the number of rows in `V`.
+"""
 factorcontract(U::S, V::R) where {T<:Number,S<:AbstractMatrix{T},R<:AbstractMatrix{T}} = U*V
 
 
@@ -1037,6 +1166,20 @@ function factorqr!(U::Factor{T,N}; rev::Bool=false, factf=(rev ? A -> LinearAlge
 	U,R
 end
 
+"""
+    factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N}
+
+Perform an in-place QR or LQ factorization of the factor `U`, depending on the value of the keyword argument `rev` (reverse). This variant uses the `Val{false}` signature for the default QR factorization.
+
+# Arguments
+- `U::Factor{T,N}`: Mutable factor of type `Factor` with elements of type `T` (a subtype of `FloatRC`) and `N` dimensions.
+- `rev::Bool=false`: Keyword argument that specifies whether to perform an LQ factorization (`true`) or a QR factorization (`false`, default).
+
+# Returns
+- A tuple `(U, R)` where:
+  - `U`: Transformed tensor after applying the QR or LQ factorization.
+  - `R`: Factor tensor obtained by reshaping the factor matrix of the factorization.
+"""
 factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:AbstractFloat},N} = factorqr!(U;  rev=rev)
 
 """
@@ -1215,7 +1358,7 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 end
 
 """
-	factorsvd!(W, m, n; atol=0, rtol=0, rank=0, major="last", rev=false)
+    factorsvd!(W, m, n; atol=0, rtol=0, rank=0, major="last", rev=false)
 
 produces U and V such that W ≈ U ⋈ V if rev == false and W ≈ V ⋈ U if rev == true
 U is orthogonal — with respect to the second or first rank index
@@ -1320,7 +1463,6 @@ println("Relative noise level (δ): ", δ)
 println("Norm of the input factor (μ): ", μ)
 println("Rank of the truncated SVD (ρ): ", ρ)
 println("Singular values after thresholding (σ): ", σ)
-
 """
 function factorsvd!(W::Factor{T,N},
                     m::Union{FactorSize,Colon},
