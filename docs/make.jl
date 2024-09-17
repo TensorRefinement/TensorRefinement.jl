@@ -10,6 +10,7 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://TensorRefinement.github.io/TensorRefinement.jl",
         assets=String[],
+        size_threshold = 500000  # Increased size threshold to avoid file size error
     ),
     pages=[
         "Home" => "index.md",

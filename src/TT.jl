@@ -1,17 +1,17 @@
 using LinearAlgebra, Random
 using TensorRefinement.Auxiliary
 
-import Base: length, deepcopy, reverse!, ndims, size, ones, zeros
-import Base: fill!
-import Random: rand!
-import LinearAlgebra: rank
-import Base: permutedims!
-import Base: getindex
-import Base: append!, prepend!, push!, pushfirst!, pop!, popfirst!, insert!, deleteat!
-import Base: vcat, hcat
-import LinearAlgebra: lmul!, rmul!
-import Base: *, kron, +
-import LinearAlgebra: qr!, svd!
+import Base: Base.length, Base.deepcopy, Base.reverse!, Base.ndims, Base.size, Base.ones, Base.zeros
+import Base: Base.fill!
+import Random: Random.rand!
+import LinearAlgebra: LinearAlgebra.rank
+import Base: Base.permutedims!
+import Base: Base.getindex
+import Base: Base.append!, Base.prepend!, Base.push!, Base.pushfirst!, Base.pop!, Base.popfirst!, Base.insert!, Base.deleteat!
+import Base: Base.vcat, Base.hcat
+import LinearAlgebra: LinearAlgebra.lmul!, LinearAlgebra.rmul!
+import Base: Base.*, Base.kron, Base.+
+import LinearAlgebra: LinearAlgebra.qr!, LinearAlgebra.svd!
 
 export TT
 export length, ndims, size, rank, ranks
@@ -1446,7 +1446,7 @@ function composeblock(U::Dec{T,N}, α::Int, β::Int; major::String="last") where
 end
 
 """
-    vcat(U::TT{T,N}, V::TT{T,N}, W::Vararg{TT{T,N},M}) -> TT{T,N}
+    vcat(U::TT{T,N}, V::TT{T,N}, W::Vararg{TT{T,N},M})
 
 Vertically concatenate the given tensor trains `U`, `V` and any additional tensor trains `W...`, to form a new tensor train `Z`.
 
@@ -1733,7 +1733,7 @@ Funcion is an alias for [`had`](@ref).
 *(U::TT{T,N}, V::TT{T,N}) where {T<:Number,N} = had(U, V)
 
 """
-    kron(U₁::Dec{T,N}, U₂::Dec{T,N}) -> TT{T,N}
+    kron(U₁::Dec{T,N}, U₂::Dec{T,N})
 
 Compute the Kronecker product of two decompositions `U₁` and `U₂` of type `Dec`, and return the result as a new tensor train.
 
@@ -1937,7 +1937,7 @@ Perform an in-place QR decomposition on all the factors of the tensor train `W`.
 qr!(W::TT{T,N}; path::String="") where {T<:FloatRC,N} = qr!(W, :; path=path)
 
 """
-    svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") -> (TT{T,N}, Vector{Float64}, Vector{Float64}, Float64, Vector{Int}, Vector{Vector{Float64}})
+    svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last")
 
 Perform an in-place singular value decomposition (SVD) with specified path and tolerances on the tensor train `W`. Assume that the decomposition `W` is orthogonal.
 
@@ -2119,7 +2119,7 @@ function svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aT
 end
 
 """
-    svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") -> (TT{T,N}, Vector{Float64}, Vector{Float64}, Float64, Vector{Int}, Vector{Vector{Float64}})
+    svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last")
 
 Perform an in-place singular value decomposition (SVD) of the in `Λ` specified factors with automatically deduced target dimensions of the factors.
 Consider specified path and tolerances on the tensor train `W`. Assume that the decomposition `W` is orthogonal.
@@ -2145,12 +2145,12 @@ Consider specified path and tolerances on the tensor train `W`. Assume that the 
 
 # Throws
 - `ArgumentError`: If any input arguments are invalid, for example incorrect dimensions, negative values where non-negative are expected or invalid strings for path or major.
-- For full error control, see default [`decsvd!`](@ref).
+- For full error control, see default `svd!`.
 """
 svd!(W::TT{T,N}, Λ::Path; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") where {T<:FloatRC,N} = svd!(W, Λ, :; path=path, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, maxrank=maxrank, major=major)
 
 """
-    svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") -> (TT{T,N}, Vector{Float64}, Vector{Float64}, Float64, Vector{Int}, Vector{Vector{Float64}})
+    svd!(W::TT{T,N}, Λ::Path, n::Union{Colon,DecSize}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last")
 
 Perform an in-place singular value decomposition (SVD) of all factors with automatically deduced target dimensions of the factors.
 Consider specified path and tolerances on the tensor train `W`. Assume that the decomposition `W` is orthogonal.
@@ -2175,6 +2175,6 @@ Consider specified path and tolerances on the tensor train `W`. Assume that the 
 
 # Throws
 - `ArgumentError`: If any input arguments are invalid, for example incorrect dimensions, negative values where non-negative are expected or invalid strings for path or major.
-- For full error control, see default [`decsvd!`](@ref).
+- For full error control, see default `svd!`.
 """
 svd!(W::TT{T,N}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") where {T<:FloatRC,N} = svd!(W, :, :; path=path, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, maxrank=maxrank, major=major)

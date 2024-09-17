@@ -42,13 +42,6 @@ Determine the sizes of the mode dimensions of the given factor `U` in a vector, 
 # Throws
 - `ArgumentError`: If factor exhibits only one or no rank dimension.
 - `ArgumentError`: If factor exhibits negative mode size.
-
-# Example
-```julia
-U = Factor(rand(3, 4, 5, 6, 7))  # Initialization of random Factor
-size_vector = factorsize(U)  # Returns vector containing all but the first and last dimensions
-println(size_vector)  # Outputs FactorSize([4, 5, 6]) where Factorsize = Vector{Int}
-```
 """
 function factorsize(U::Factor{T,N}) where {T<:Number,N}
 	sz = size(U)
@@ -68,7 +61,7 @@ end
 Determine the first and last rank dimension of a given factor `U`.
 
 # Arguments
-- `U::Factor{T, N}`: factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 
 # Returns
 - Tuple `(sz[1], sz[end])` where `sz[1]` is the first and `sz[end]` is the last dimension of the input tensor.
@@ -76,7 +69,6 @@ Determine the first and last rank dimension of a given factor `U`.
 # Throws
 - `ArgumentError`: If factor exhibits only one or no rank dimension.
 - `ArgumentError`: If factor exhibits negative mode size.
-
 """
 function factorranks(U::Factor{T,N}) where {T<:Number,N}
 	sz = size(U)
@@ -95,7 +87,7 @@ end
 Determine the number of entries in the given factor.
 
 # Arguments
-- `U::Factor{T, N}`: factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 
 # Returns
 - An integer specifiying the number of entries in the given [`Factor`].
@@ -103,7 +95,7 @@ Determine the number of entries in the given factor.
 factornumentries(U::Factor{T,N}) where {T<:Number,N} = length(U)
 
 """
-An alias for the function factornumentries.
+An alias for the function [`factornumentries`](@ref).
 """
 factorstorage(U::Factor{T,N}) where {T<:Number,N} = factornumentries(U)
 
@@ -113,7 +105,7 @@ factorstorage(U::Factor{T,N}) where {T<:Number,N} = factornumentries(U)
 Return the number of mode dimensions excluding the first and last dimension.
 
 # Arguments
-- `::Factor{T, N}`: factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 
 # Returns
 - An integer representing the number of mode dimensions, which is `N - 2` (number of entries in [`factorsize`](@ref)).
@@ -270,7 +262,7 @@ Convert a factor `U` into a matrix by permuting and reshaping the mode dimension
 according to the specified indices `π` and `σ`.
 
 # Arguments
-- `U::Factor{T,K}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `K` dimensions.
+- `U::Factor{T,K}`: Input factor of type `Factor` with elements of type `T` and `K` dimensions.
 - `π::Indices`: Reference numbers specifying the permutation of mode dimensions for the first dimension of the resulting matrix.
 - `σ::Indices`: Reference numbers specifying the permutation of mode dimensions for the second dimension of the resulting matrix.
 
@@ -310,7 +302,7 @@ end
 Select specific slices from a factor `U` based on the provided rank indices `α` and `β`.
 
 # Arguments
-- `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 - `α::Indices`: Reference numbers for selecting slices along the first rank dimension.
 - `β::Indices`: Reference numbers for selecting slices along the second rank dimension.
 
@@ -346,7 +338,7 @@ Function reshapes given factor into 3D array, selects all entries along second d
 and third dimension, and reshapes selected entries into a block with sizes equivalent to the mode dimensions of the initial array.
 
 # Arguments
-- `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 - `α::Int`: Reference numbers for selecting the slice along the first rank dimension.
 - `β::Int`: Reference numbers for selecting the slice along the second rank dimension.
 
@@ -376,9 +368,9 @@ end
 Vertically concatenate the factors `U`, `V`, and additional factors in `W` along the first rank dimension.
 
 # Arguments
-- `U::Factor{T,N}`: First factor to be concatenated. Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `V::Factor{T,N}`: Second factor to be concatenated. Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `W::Vararg{Factor{T,N},M}`: Additional factors to be concatenated, each of Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: First factor to be concatenated. Of type `Factor` with elements of type `T` and `N` dimensions.
+- `V::Factor{T,N}`: Second factor to be concatenated. Of type `Factor` with elements of type `T` and `N` dimensions.
+- `W::Vararg{Factor{T,N},M}`: Additional factors to be concatenated, each of Of type `Factor` with elements of type `T` and `N` dimensions.
 
 # Returns
 - A new factor resulting from the vertical concatenation of `U`, `V`, and the additional factors in `W`.
@@ -407,9 +399,9 @@ end
 Horizontally concatenate the factors `U`, `V`, and additional factors in `W` along the second rank dimension.
 
 # Arguments
-- `U::Factor{T,N}`: First factor to be concatenated. Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `V::Factor{T,N}`: Second factor to be concatenated. Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `W::Vararg{Factor{T,N},M}`: Additional factors to be concatenated, each of Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: First factor to be concatenated. Of type `Factor` with elements of type `T` and `N` dimensions.
+- `V::Factor{T,N}`: Second factor to be concatenated. Of type `Factor` with elements of type `T` and `N` dimensions.
+- `W::Vararg{Factor{T,N},M}`: Additional factors to be concatenated, each of Of type `Factor` with elements of type `T` and `N` dimensions.
 
 # Returns
 - A new factor resulting from the horizontal concatenation of `U`, `V`, and the additional factors in `W`.
@@ -439,9 +431,9 @@ end
 Concatenate the factors `U`, `V`, and additional factors in `W` along the mode dimensions and the second rank dimension.
 
 # Arguments
-- `U::Factor{T,N}`: First factor to be concatenated. Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `V::Factor{T,N}`: Second factor to be concatenated. Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `W::Vararg{Factor{T,N},M}`: Additional factors to be concatenated, each of Of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: First factor to be concatenated. Of type `Factor` with elements of type `T` and `N` dimensions.
+- `V::Factor{T,N}`: Second factor to be concatenated. Of type `Factor` with elements of type `T` and `N` dimensions.
+- `W::Vararg{Factor{T,N},M}`: Additional factors to be concatenated, each of Of type `Factor` with elements of type `T` and `N` dimensions.
 
 # Returns
 - A new factor resulting from the concatenation of `U`, `V`, and the additional factors in `W` along the mode dimensions and the second rank dimension.
@@ -535,7 +527,7 @@ end
 Transpose the rank dimensions of the factor `U`.
 
 # Arguments
-- `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 
 # Returns
 - A new factor with the rank dimensions of `U` transposed.
@@ -622,7 +614,7 @@ factormodetranspose(U::Factor{T,2}) where {T<:Number} = factormodetranspose(U, (
 Reshape the mode dimensions of the factor `U` to the specified sizes in `n`.
 
 # Arguments
-- `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 - `n::FactorSize`: Vector specifying the new sizes for the mode dimensions. Product of `n` must equal the product of current mode sizes of `U`.
 
 # Returns
@@ -665,7 +657,7 @@ factormodereshape(U::Factor{T,N}, n::Vector{Any}) where {T<:Number,N} = factormo
 Create a tensor with diagonal properties from the factor `U` by placing the elements of `U` along the diagonal of a larger-dimensional tensor.
 
 # Arguments
-- `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 
 # Returns
 - A new factor that represents a tensor with diagonal properties constructed from `U`, dimensions expanded.
@@ -694,8 +686,8 @@ end
 Contract two factors `U` and `V` along their shared rank dimensions. Function supports contracting in different orientations and orders based on parameters `rev` and `major`.
 
 # Arguments
-- `U::Factor{T,N}`: First input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
-- `V::Factor{T,N}`: Second input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: First input factor of type `Factor` with elements of type `T` and `N` dimensions.
+- `V::Factor{T,N}`: Second input factor of type `Factor` with elements of type `T` and `N` dimensions.
 - `rev::Bool=false`: If `true`, reverse the roles of `U` and `V` in the contraction.
 - `major::String="last"`: Specifies major contraction order. Must be either `"last"` (default) or `"first"`.
 
@@ -737,7 +729,7 @@ end
 Contract a factor `U` with a matrix `V`, aligning the rank dimensions and performing matrix multiplication.
 
 # Arguments
-- `U::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `U::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 - `V::S`: Matrix of type `S` and elements of type `T` to contract with `U`.
 
 # Returns
@@ -765,7 +757,7 @@ Contracts a matrix `U` with a factor `V`, aligning the rank dimensions and perfo
 
 # Arguments
 - `U::S`: Matrix of type `S` and elements of type `T` to contract with `V`.
-- `V::Factor{T,N}`: Input factor of type [`Factor`](@ref) with elements of type `T` and `N` dimensions.
+- `V::Factor{T,N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 
 # Returns
 - A new factor resulting from the contraction of `U` with `V`.
@@ -809,9 +801,9 @@ factorcontract(U::S, V::R) where {T<:Number,S<:AbstractMatrix{T},R<:AbstractMatr
 Perform a mode-wise multiplication (contraction) of two factors `U₁` and `U₂` along specified modes `σ₁` and `σ₂`. Operation contracts the specified modes, while the remaining dimensions of the factors are combined.
 
 # Arguments
-- `U₁::Factor{T,N₁}`: First factor of type [`Factor`](@ref) with elements of type `T` and `N₁` dimensions.
+- `U₁::Factor{T,N₁}`: First factor of type `Factor` with elements of type `T` and `N₁` dimensions.
 - `σ₁::Indices`: Reference numbers specifying which modes of `U₁` to use in the contraction. Can be a vector of integers or an empty vector.
-- `U₂::Factor{T,N₂}`: Second factor of type [`Factor`](@ref) with elements of type `T` and `N₂` dimensions.
+- `U₂::Factor{T,N₂}`: Second factor of type `Factor` with elements of type `T` and `N₂` dimensions.
 - `σ₂::Indices`: Reference numbers specifying which modes of `U₂` to use in the contraction. Can be a vector of integers or an empty vector.
 
 # Returns
@@ -904,7 +896,7 @@ end
 Perform a Kronecker product of multiple factors (optionally raised to specified nonnegative integer exponents).
 
 # Arguments
-- `U::Union{Factor{T, N}, Pair{Factor{T, N}, Int}}`: first factor can either be a [`Factor`](@ref) type or a pair `(Factor, Int)`. If given as a pair, the integer is the exponent for the respective factor in the Kronecker product.
+- `U::Union{Factor{T, N}, Pair{Factor{T, N}, Int}}`: first factor can either be a `Factor` type or a pair `(Factor, Int)`. If given as a pair, the integer is the exponent for the respective factor in the Kronecker product.
 - `V::Vararg{Union{Factor{T, N}, Pair{Factor{T, N}, Int}}, M}`: variable number (denoted by M) of additional factors, each of which can also be either a `Factor` type or a pair `(Factor, Int)`. The same usage for the integer applies as in the above line.
 
 # Returns
@@ -966,8 +958,8 @@ end
 Compute the higher-order tensor product of two factors `U` and `V`. Resulting factor has dimensions formed by multiplying the ranks and mode sizes of `U` and `V`.
 
 # Arguments
-- `U::Factor{T,N}`: First factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
-- `V::Factor{T,N}`: Second factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
+- `U::Factor{T,N}`: First factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
+- `V::Factor{T,N}`: Second factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
 
 # Returns
 - A reshaped tensor representing the higher-order product of `U` and `V`, with dimensions `(p * r, n..., q * s)` where:
@@ -998,9 +990,9 @@ end
 Compute the higher-order tensor product of two factors `U₁` and `U₂` along specified modes `σ₁` and `σ₂`. Function allows for a flexible contraction over selected modes.
 
 # Arguments
-- `U₁::Factor{T,N₁}`: First factor of type [`Factor`](@ref) with elements of type `T` and `N₁` dimensions.
+- `U₁::Factor{T,N₁}`: First factor of type `Factor` with elements of type `T` and `N₁` dimensions.
 - `σ₁::Indices`: Reference numbers specifying which modes of `U₁` to use in the contraction. Can be a vector of integers or an empty vector.
-- `U₂::Factor{T,N₂}`: Second factor of type [`Factor`](@ref) with elements of type `T` and `N₂` dimensions.
+- `U₂::Factor{T,N₂}`: Second factor of type `Factor` with elements of type `T` and `N₂` dimensions.
 - `σ₂::Indices`: Reference numbers specifying which modes of `U₂` to use in the contraction. Can be a vector of integers or an empty vector.
 
 # Returns
@@ -1070,7 +1062,7 @@ end
 Project the factor `U` onto the subspace spanned by the factor `W`, while storing the projection in `V`. The function modifies `U` and `V` based on the projection.
 
 # Arguments
-- `V::Factor{T,N}`: Resulting factor (of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions) where the projection will be stored. Should have mode size `1,...,1` and ranks consistent with `U` and `W`.
+- `V::Factor{T,N}`: Resulting factor (of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions) where the projection will be stored. Should have mode size `1,...,1` and ranks consistent with `U` and `W`.
 - `U::Factor{T,N}`: Factor (of aforementioned type) to be projected. Must have the same mode size as `W`.
 - `W::Factor{T,N}`: Factor (also of aforementioned type) that defines the subspace for projection. Must have the same mode size as `U`.
 - `rev::Bool=false`: Keyword argument that determines the orientation of the projection operation.
@@ -1133,7 +1125,7 @@ end
 Perform a QR or LQ factorization of the tensor `U`, depending on the value of the keyword argument `rev` (reverse). 
 
 # Arguments
-- `U::Factor{T, N}`: mutable factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: mutable factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
 - `rev::Bool=false`: keyword argument that determines the type of factorization. If `false`, performs a QR factorization; if `true`, performs an LQ factorization.
 - `factf`: keyword argument that specifies the chosen factorization function. By default, `LinearAlgebra.qr!` and `LinearAlgebra.lq!` are used respectively (depending on `rev`).
 
@@ -1189,7 +1181,7 @@ factorqr!(U::Factor{T,N}, ::Val{false}; rev::Bool=false) where {T<:FloatRC{<:Abs
 Perform a QR factorization of the factor `U` with optional pivoting and the ability to return an additional factor `S`. The function can cope with different orientations (via `rev`) and supports custom factorization functions.
 
 # Arguments
-- `U::Factor{T,N}`: Factor to be decomposed, of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
+- `U::Factor{T,N}`: Factor to be decomposed, of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
 
 - `::Val{true}`: Value type that indicates that this version of `factorqr!` should be used when `returnS` is needed.
 
@@ -1267,11 +1259,11 @@ end
 Add rows or columns to an orthogonal factor `Q` and its corresponding upper triangular factor `R`, depending on the value of `rev`. This function is an extension to the QR factorization by updating the factors to incorporate a new matrix `U`.
 
 # Arguments
-- `Q::Factor{T,N}`: Orthogonal factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and `N` dimensions.
+- `Q::Factor{T,N}`: Orthogonal factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and `N` dimensions.
   - If `rev == true`, `Q` is assumed to be orthogonal with respect to the first rank.
   - If `rev == false`, `Q` is assumed to be orthogonal with respect to the second rank.
 
-- `R::Union{Factor{T,N},Nothing}`: Upper triangular factor of the QR factorization. Can be of type [`Factor`](@ref) or `Nothing`.
+- `R::Union{Factor{T,N},Nothing}`: Upper triangular factor of the QR factorization. Can be of type `Factor` or `Nothing`.
   - If `R` is `Nothing`, an identity matrix of appropriate dimensions will be used.
 
 - `U::Factor{T,N}`: New matrix to be added to the existing factors (same mode dimensions as `Q`).
@@ -1358,7 +1350,7 @@ function factorqradd(Q::Factor{T,N}, R::Union{Factor{T,N},Nothing}, U::Factor{T,
 end
 
 """
-    factorsvd!(W, m, n; atol=0, rtol=0, rank=0, major="last", rev=false)
+factorsvd!(W, m, n; atol=0, rtol=0, rank=0, major="last", rev=false)
 
 produces U and V such that W ≈ U ⋈ V if rev == false and W ≈ V ⋈ U if rev == true
 U is orthogonal — with respect to the second or first rank index
@@ -1369,22 +1361,23 @@ rank=0 leads to no rank thresholding
 """
 
 """
-    function factorsvd!(W::Factor{T,N},
-                    m::Union{FactorSize,Colon},
-                    n::Union{FactorSize,Colon};
-					soft::S=zero(S),
-					hard::S=zero(S),
-                    atol::S=zero(S),
-                    rtol::S=zero(S),
-                    rank::Int=0,
-                    major::String="last",
-					rev::Bool=false,
-					factf=(A -> LinearAlgebra.svd!(A; full=false, alg=LinearAlgebra.QRIteration())) ) where {S<:AbstractFloat,T<:FloatRC{S},N}
+    factorsvd!(W::Factor{T,N},
+               m::Union{FactorSize,Colon},
+               n::Union{FactorSize,Colon};
+               soft::S=zero(S),
+               hard::S=zero(S),
+               atol::S=zero(S),
+               rtol::S=zero(S),
+               rank::Int=0,
+               major::String="last",
+               rev::Bool=false,
+               factf=(A -> LinearAlgebra.svd!(A; full=false, alg=LinearAlgebra.QRIteration())) )
+	 where {S<:AbstractFloat,T<:FloatRC{S},N}
 
 Perform a singular value decomposition (SVD) of the factor `W` where the factor dimensions are adjusted accordingly and optional thresholding is carried out based on specified parameters. 
 
 # Arguments
-- `W::Factor{T, N}`: Input factor of type [`Factor`](@ref) with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and `N` dimensions.
+- `W::Factor{T, N}`: Input factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and `N` dimensions.
 - `m::Union{FactorSize, Colon}`: Mode-size parameter for first dimension. Can be a [`FactorSize`](@ref) vector specifying the sizes of the mode dimensions or `Colon` to represent all indices.
 - `n::Union{FactorSize, Colon}`: Mode-size parameter for second dimension. Can also be a [`FactorSize`](@ref) vector or `Colon`.
 - `soft::S=zero(S)`: Keyword argument specifying the soft threshold for singular value truncation. Must be nonnegative and finite.
@@ -1438,31 +1431,6 @@ Full Error List:
 - `ErrorException`: If squaring `hard` leads to underflow and it was passed positive.
 - `ErrorException`: If squaring `atol` leads to overflow and it was passed finite.
 - `ErrorException`: If squaring `atol` leads to underflow and it was passed positive.
-
-
-
-# Example
-```julia
-# Assume Factor{T, N}, FactorSize, and FloatRC are properly defined and initialized
-
-# Initialize W as a Factor{T, N} type, for example, a decomposed tensor
-W = Factor(...)  # specific initialization needed
-
-# Specify mode-size parameters
-m = FactorSize([2, 3])
-n = FactorSize([2, 2])
-
-# Perform SVD with pre-specified thresholds and tolerances
-U, V, ε, δ, μ, ρ, σ = factorsvd!(W, m, n; soft=0.5, hard=0.05, atol=1e-6, rtol=1e-3, rank=10, major="last")
-
-# Output the resulting factors and singular values
-println("Left singular vectors (U): ", U)
-println("Right singular vectors (V): ", V)
-println("Effective noise level (ε): ", ε)
-println("Relative noise level (δ): ", δ)
-println("Norm of the input factor (μ): ", μ)
-println("Rank of the truncated SVD (ρ): ", ρ)
-println("Singular values after thresholding (σ): ", σ)
 """
 function factorsvd!(W::Factor{T,N},
                     m::Union{FactorSize,Colon},

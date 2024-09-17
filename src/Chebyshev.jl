@@ -469,6 +469,35 @@ end
 # 	d
 # end
 
+
+#"""
+#    chebtochebex(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebextocheb(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebextoleg(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebextolegn(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebtochebrt(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebrttocheb(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebrttoleg(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebrttolegn(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebtoleg(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    legtocheb(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    chebtolegn(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    legntocheb(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#
+# Apply a transformation between different polynomial coefficient bases (Chebyshev, Legendre, etc.) along specified dimensions.
+
+# Arguments
+# - `C::AbstractArray{T}`: Input array of coefficients, where `T` is a subtype of `AbstractFloat`.
+# - `dims=1`: Specifies the dimensions along which the transformation should be applied.
+
+# Returns
+# Array of coefficients after applying the transformation.
+
+# Throws
+# - `ArgumentError`: If any of the dimensions in `C` is non-positive.
+# - `ArgumentError`: If any dimension in `dims` is not within the valid range of the dimensions of `C`.
+# - `ArgumentError`: The elements in `dims` are not unique.
+# """
 for fname ∈ (:chebtochebex,:chebextocheb,:chebextoleg,:chebextolegn,:chebtochebrt,:chebrttocheb,:chebrttoleg,:chebrttolegn,:chebtoleg,:legtocheb,:chebtolegn,:legntocheb)
 	@eval begin
 		function ($fname)(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
@@ -488,6 +517,23 @@ for fname ∈ (:chebtochebex,:chebextocheb,:chebextoleg,:chebextolegn,:chebtoche
 	end
 end
 
+#"""
+#    chebdiff(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#
+#Apply a Chebyshev differentiation operator along the specified dimensions.
+
+# Arguments
+#- `C::AbstractArray{T}`: Input array of coefficients, where `T` is a subtype of `AbstractFloat`.
+#- `dims=1`: Specifies the dimensions along which the differentiation should be applied.
+
+# Returns
+#An array after applying the Chebyshev differentiation operator.
+
+# Throws
+#- `ArgumentError`: If any of the dimensions in `C` is non-positive.
+#- `ArgumentError`: If any dimension in `dims` is not within the valid range of the dimensions of `C`.
+#- `ArgumentError`: The elements in `dims` are not unique.
+#"""
 for fname ∈ (:chebdiff,)
 	@eval begin
 		function ($fname)(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}

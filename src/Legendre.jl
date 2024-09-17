@@ -238,12 +238,42 @@ Compute a matrix based on the normalized Legendre polynomials that encodes speci
 """
 legnref(::Type{T}, r::Int) where {T<:AbstractFloat} = modemul(legref(T, r), Pair(1,legtolegn(T, r)), Pair(2,transpose(legntoleg(T, r))))
 
+# legeval(t::Vector{T}, c::Vector{<:FloatRC{T}}) where {T<:AbstractFloat}
+# legneval(t::Vector{T}, c::Vector{<:FloatRC{T}}) where {T<:AbstractFloat}
+#
+# Evaluate a (normalized, in case of `legneval`) Legendre series for a given coefficient vector `c` at the points in `t`. 
+#
+# Arguments
+# - `t::Vector{T}`: Input vector of points specifying where the series is evaluated.
+# - `c::Vector{<:FloatRC{T}}`: Coefficients of the (normalized) Legendre series.
+#
+# Returns
+# Vector `v` containing the evaluation of the (normalized) Legendre series at each point in `t`. That means, v[i] contains the evalutation of the Chebyshev series at point t[i] with coefficients from `c`.
+
+# Throws
+# - `ArgumentError`: If `length(c)` is negative.
 for fname ∈ (:legeval,:legneval)
 	@eval begin
 		($fname)(t::Vector{T}, c::Vector{<:FloatRC{T}}) where {T<:AbstractFloat} = ($fname)(t, length(c))*c
 	end
 end
 
+#    legtolegn(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    legntoleg(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+
+# Apply a transformation between different polynomial coefficient bases (either from Legendre to normalized # Legendre or vice versa) along specified dimensions. 
+
+# Arguments
+# - `C::AbstractArray{T}`: Input array of coefficients, where `T` is a subtype of `AbstractFloat`.
+# - `dims=1`: Specifies the dimensions along which the transformation should be applied.
+
+# Returns
+# Array of coefficients after applying the transformation.
+
+# Throws
+# - `ArgumentError`: If any of the dimensions in `C` is non-positive.
+# - `ArgumentError`: If any dimension in `dims` is not within the valid range of the dimensions of `C`.
+# - `ArgumentError`: The elements in `dims` are not unique.
 for fname ∈ (:legtolegn,:legntoleg)
 	@eval begin
 		function ($fname)(C::AbstractArray{<:FloatRC{T}}; dims=1) where {T<:AbstractFloat}
@@ -263,6 +293,22 @@ for fname ∈ (:legtolegn,:legntoleg)
 	end
 end
 
+#    legdiff(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+#    legndiff(C::AbstractArray{T}; dims=1) where {T<:AbstractFloat}
+
+# Apply the (normalized) Legendre differentiation transformation `legdiff` (or `legndiff`) to the coefficient array `C` along the specified dimensions `dims`.
+
+# Arguments
+# - `C::AbstractArray{T}`: Coefficient array to differentiate, where `T` is a subtype of `AbstractFloat`.
+# - `dims=1`: Specifies the dimensions along which to perform the `legdiff` or `legndiff` .
+
+# Returns
+# Coefficient array after the respective differentiation transformation has been carried out along the specified dimensions.
+
+# Throws
+# - `ArgumentError`: If any of the dimensions in `C` is non-positive.
+# - `ArgumentError`: If any dimension in `dims` is not within the valid range of the dimensions of `C`.
+# - `ArgumentError`: The elements in `dims` are not unique.
 for fname ∈ (:legdiff,:legndiff)
 	@eval begin
 		function ($fname)(C::AbstractArray{<:FloatRC{T}}; dims=1) where {T<:AbstractFloat}

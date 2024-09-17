@@ -37,7 +37,7 @@ const VectorDec{T} = Vector{VectorFactor{T}} where T<:Number
 const MatrixDec{T} = Vector{MatrixFactor{T}} where T<:Number
 
 """
-    function checkndims(d::Int)
+    checkndims(d::Int)
 
 Check the correctness of the numbers of dimensions.
 
@@ -57,7 +57,7 @@ function checkndims(d::Int)
 end
 
 """
-    function checklength(L::Int)
+    checklength(L::Int)
 
 Check the correctness of the length L.
 
@@ -77,7 +77,7 @@ function checklength(L::Int)
 end
 
 """
-    function checkndims(d::Vector{Int})
+    checkndims(d::Vector{Int})
 
 Check whether a given vector exhibits uniform values.
 
@@ -106,7 +106,7 @@ function checkndims(d::Vector{Int})
 end
 
 """
-    function checksize(n::DecSize; len::Int=0, dim::Int=0)
+    checksize(n::DecSize; len::Int=0, dim::Int=0)
 
 Check the correctness of a given size matrix with integer entries (Type: Decsize).
 
@@ -666,7 +666,7 @@ Create a new decomposition by factorizing the decomposition `U` to a single fact
 - `major::String="last"`: Reference numbers for selecting slices along the first rank dimension of the first factor of `U`.
 
 # Returns
-- `V`: New factor object type [`Factor`](@ref) obtained by contracting the entire decomposition. 
+- `V`: New factor object type `Factor` obtained by contracting the entire decomposition. 
 """
 function factor(U::Dec{T,N}; major::String="last") where {T<:Number,N}
 	V = deepcopy(U)
@@ -674,7 +674,7 @@ function factor(U::Dec{T,N}; major::String="last") where {T<:Number,N}
 	return V
 end
 
-""""
+"""
     block!(U::Dec{T,N}, α::Int, β::Int; major::String="last") where {T<:Number,N}
 
 Selects first ranks of the first and last ranks of the last factor of the decomposition `U` specified by the indices `α` and `β`, contract all factors together in place and yield the resulting block.
@@ -876,6 +876,7 @@ function decreverse!(W::Dec{T,N}) where {T<:Number,N}
 	end
 	return W
 end
+
 """
     decmodetranspose!(U::Dec{T,N}, τ::Union{NTuple{K,Int},Vector{Int}}) where {T<:Number,N,K}
 
@@ -2211,7 +2212,7 @@ decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="", returnRfactors::Bool=fal
             rTolDistr::Float2{AbstractFloat}=zero(S), 
             rank::Int2=0, 
             major::String="last")
-	where {S<:AbstractFloat,T<:FloatRC{S},N}
+    where {S<:AbstractFloat,T<:FloatRC{S},N}
 
 Perform a truncated Singular Value Decomposition (SVD) on a decomposition object (vector of factors) `W`.
 
@@ -2269,15 +2270,6 @@ Extended Error List:
 - `ArgumentError`: If rank is not a nonnegative Int or a vector of such.
 - `ArgumentError`: If rank, passed as a vector, has incorrect length.
 - `ArgumentError`: If major is neither \"last\" (default) nor \"first\".
-
-# Example
-
-```julia
-W = Dec([...])  # Initialize a Dec object with appropriate tensor decomposition
-Λ = [1, 3, 5]  # Indices specifying factors to be decomposed (here: assume that there are at least five factors in our initialized decomposition)
-
-# Perform truncated SVD on the decomposition object W (mode sizes shall be deduced from `Dec` object `W`, so specify `n` as a colon)
-W, ε, δ, μ, ρ, σ = decsvd!(W, Λ, :; path="forward", soft=0.1, hard=0.01, aTol=1e-5)
 """
 function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
 	# assumes that the decomposition is orthogonal
@@ -2458,7 +2450,7 @@ Function deduces mode sizes from the `Dec` object `W`.
 
 # Throws
 - `ArgumentError`: If any arguments are invalid, for example incorrect dimensions or invalid thresholds.
-- For an extended error list, see the default version of [`decsvd!`](@ref).
+- For an extended error list, see the default version of `decsvd!`.
 """
 decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
 
@@ -2493,6 +2485,6 @@ Perform a truncated Singular Value Decomposition (SVD) on all components of a de
 
 # Throws
 - `ArgumentError`: If any arguments are invalid, such as incorrect dimensions, invalid thresholds, or mismatched sizes for paths or ranks.
-- For an extended error list, see the default version of [`decsvd!`](@ref).
+- For an extended error list, see the default version of `decsvd!`.
 """
 decsvd!(W::Dec{T,N}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)

@@ -81,7 +81,6 @@ Generate a matrix decomposition specifiying...
 - `ArgumentError`: If `ℓ` is not in `1:L`.
 - `ArgumentError`: If `d` is not positive.
 - `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
-
 """
 function extdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
@@ -140,7 +139,6 @@ Construct a matrix decomposition that represents ...
 - `ArgumentError`: If `ℓ` is not in `0:L`.
 - `ArgumentError`: If `d` is not positive.
 - `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
-
 """
 function diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 0
@@ -261,7 +259,6 @@ Construct a matrix decomposition representing ... based on the parameters provid
 - `ArgumentError`: If `ℓ` is not in `1:L`.
 - `ArgumentError`: If `d` is less than 1.
 - `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
-
 """
 function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1
@@ -340,6 +337,7 @@ function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	(major == "last") && decreverse!(M)
 	M
 end
+
 """
     diffdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
 
@@ -705,7 +703,6 @@ Generate a decomposition representing ... using ...
 - `ArgumentError`: If `L` is less than 1.
 - `ArgumentError`: If `d` is less than 1.
 - `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
-
 """
 function diffbpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC}
 	if L < 1

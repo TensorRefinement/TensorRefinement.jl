@@ -33,7 +33,7 @@ const Float3{T} = Union{T,Vector{T},Vector{Vector{T}}} where T<:AbstractFloat
 const Int2 = Union{Int,Vector{Int}}
 
 """
-`Int3` is an alias for an object of type `Int`, `Vector{Int}` or Vector{Vector{Int}}.
+`Int3` is an alias for an object of type `Int`, `Vector{Int}` or `Vector{Vector{Int}}`.
 """
 const Int3 = Union{Int,Vector{Int},Vector{Vector{Int}}}
 
@@ -64,7 +64,7 @@ Returns
 two(::Type{T}) where T<:Number = 2*one(T)
 
 """
-    indvec(σ::Indices; min::Int=1, max::Int=0) -> Vector{Int}
+    indvec(σ::Indices; min::Int=1, max::Int=0)
 
 Convert several index specifications to a vector of integers. Function supports Julia indexing types like `Colon`, `Int`, `UnitRange`, `StepRange`, `Tuple`, and `Nothing`.
 
@@ -89,12 +89,11 @@ function indvec(σ::Indices; min::Int=1, max::Int=0)
 end
 
 """
-    threshold(c::Vector{T}, τsoft::T, τhard::T, τ::T, r::Int) -> Tuple{Vector{T}, T, Int} where T<:Real
+    threshold(c::Vector{T}, τsoft::T, τhard::T, τ::T, r::Int)
 
 Apply thresholding to the vector `c` based on soft, hard, and overall thresholds (`τsoft`, `τhard`, and `τ`). Optional truncation of the vector to maintain a specified rank `r` available.
 
 Arguments
-
 - `c::Vector{T}`: Vector of elements of Type `T`.
 - `τsoft::T`: Soft threshold value. All elements less than or equal to this value are set to zero, all above are shrunken towards zero.
 - `τhard::T`: Hard threshold value. All elements less than or equal to this value are set to zero.
@@ -249,7 +248,6 @@ end
     _mode2mul(A::AbstractArray{<:Number,3}, B::AbstractMatrix{<:Number})
 
 Perform a mode-2 multiplication of a 3-dimensional array `A` with a matrix `B`.
-
 Effectively, this operation multiplies `B` with each "slice" of the 3D array `A` along its second dimension (mode-2).
 
 # Arguments
@@ -273,8 +271,7 @@ end
     modemul(A::AbstractArray{<:Number,N}, B::Vararg{Pair{Int,<:AbstractMatrix{<:Number}},M}) where {N,M}
 
 Perform a mode multiplication of an N-dimensional array `A` with multiple matrices, each matrix corresponding to a specific mode (dimension) of `A`.
-
-This function applies several mode multiplications to the tensor `A` such that it is transformed according to the provided matrices.
+Function applies several mode multiplications to the tensor `A` such that it is transformed according to the provided matrices.
 
 # Arguments
 - `A::AbstractArray{<:Number,N}`: N-dimensional array of type `Number`.
