@@ -45,7 +45,7 @@ Check the correctness of the numbers of dimensions.
 - `d::Int`: Input dimension.
 
 # Returns
-- No Return. Function merely flags negative dimensions.
+- No Return. Function flags negative dimensions.
 
 # Throws
 - `ArgumentError`: If `d` is negative.
@@ -65,7 +65,7 @@ Check the correctness of the length L.
 - `L::Int`: Input length.
 
 # Returns
-- No Return. Function merely flags negative length.
+- No Return. Function flags negative length.
 
 # Throws
 - `ArgumentError`: If `L` is negative.
@@ -85,7 +85,7 @@ Check whether a given vector exhibits uniform values.
 - `d::Vector{Int}`: Input vector of integers.
 
 # Returns
-- No Return. Function merely flags incorrent vectors.
+- No Return. Function flags incorrent vectors.
 
 # Throws
 - `ArgumentError`: If `d` does not contain elements.
@@ -116,7 +116,7 @@ Check the correctness of a given size matrix with integer entries (Type: Decsize
 - `dim::Int=0`: Dimension of the size matrix. By default, it is 0.
 
 # Returns
-- No Return. Function merely flags incorrent size matrix.
+- No Return. Function flags incorrent size matrix.
 
 # Throws
 - `ArgumentError`: If `n` does not contain elements.
@@ -157,7 +157,7 @@ Check the correctness of a given rank vector with integer entries (Type: DecRank
 - `len::Int=0`: Length of the size matrix. By default, it is 0.
 
 # Returns
-- No Return. Function merely flags incorrent rank vectors.
+- No Return. Function flags incorrent rank vectors.
 
 # Throws
 - `ArgumentError`: If `r` does not contain at least two elements.
@@ -187,7 +187,7 @@ Check the correctness of two given rank vectors with integer entries.
 - `len::Int=0`: Length of the vectors. By default, it is 0.
 
 # Returns
-- No Return. Function merely flags incorrent rank vectors.
+- No Return. Function flags incorrent rank vectors.
 
 # Throws
 - `ArgumentError`: If `p` and `q` do not have the same length.
@@ -315,7 +315,7 @@ end
 Create an empty decomposition with `L` factors, with each factor exhibiting `d` mode dimensions and entries of data type `T`.
 
 # Arguments
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `d::Int`: Number of mode dimensions.
 - `L::Int`: Number of factors.
 
@@ -355,7 +355,7 @@ dec(d::Int, L::Int) = dec(Float64, d, L)
 Create an empty decomposition with zero factors, each having `d` mode dimensions and data type `T`.
 
 # Arguments
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `d::Int`: Number of mode dimensions.
 
 # Returns
@@ -403,7 +403,7 @@ end
 Create a decomposition with specified size, rank, and further optional parameters.
 
 # Arguments
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `n::Union{DecSize,FactorSize}`: Size matrix or factor size, representing the dimensions of the modes in each factor of the decomposition.
 - `r::Union{Int,DecRank}`: Rank or rank vector, representing the ranks of the decomposition.
 - `first::Int=0`: Optional first rank. Specifies the rank of the first mode dimension if `r` was not expressed using a vector.
@@ -741,7 +741,7 @@ Summarized Error list:
 - `ArgumentError`: If the decompositions are incompatible in the number of factors, mode size, or last rank.
 
 Extended Error list:
-- `ArgumentError`:  If the decompositions are incompatible in the number of factors.
+- `ArgumentError`: If the decompositions are incompatible in the number of factors.
 - `ArgumentError`: If the decompositions are incompatible in mode size.
 - `ArgumentError`: If the decompositions are incompatible in the last rank.
 """
@@ -782,7 +782,7 @@ Summarized Error list:
 - `ArgumentError`: If the decompositions are incompatible in the number of factors, mode size, or first rank.
 
 Extended Error list:
-- `ArgumentError`:  If the decompositions are incompatible in the number of factors.
+- `ArgumentError`: If the decompositions are incompatible in the number of factors.
 - `ArgumentError`: If the decompositions are incompatible in mode size.
 - `ArgumentError`: If the decompositions are incompatible in the first rank.
 """
@@ -822,7 +822,7 @@ Summarized Error list:
 - `ArgumentError`: If the decompositions are incompatible in the number of factors or mode size.
 
 Extended Error list:
-- `ArgumentError`:  If the decompositions are incompatible in the number of factors.
+- `ArgumentError`: If the decompositions are incompatible in the number of factors.
 - `ArgumentError`: If the decompositions are incompatible in mode size.
 """
 function decdcat(U::Dec{T,N}, V::Dec{T,N}, W::Vararg{Dec{T,N},M}) where {T<:Number,N,M}
@@ -894,7 +894,7 @@ Summarized Error list:
 - `ArgumentError`: If the decomposition has no mode dimensions or if `τ` is not a valid permutation.
 
 Extended Error list:
-- `ArgumentError`:  If the decomposition has no mode dimensions.
+- `ArgumentError`: If the decomposition has no mode dimensions.
 - `ArgumentError`: If `τ` is not a valid permutation of the mode dimensions of `U`.
 """
 function decmodetranspose!(U::Dec{T,N}, τ::Union{NTuple{K,Int},Vector{Int}}) where {T<:Number,N,K}
@@ -1024,7 +1024,7 @@ decrand!(U::Dec{T,N}) where {T<:Number,N} = decrand!(Random.GLOBAL_RNG, U)
 Create a decomposition of the specified type `T` where each factor is initialized to contain only zeros.
 
 # Arguments
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `n::Union{DecSize,FactorSize}`: Size matrix or factor size, representing the dimensions of the modes in each factor of the decomposition.
 - `r::Union{Int,DecRank}`: Rank or rank vector, representing the ranks of the decomposition.
 - `first::Int=0`: Optional first rank. Specifies the rank of the first mode dimension if `r` is not expressed using a vector.
@@ -1059,7 +1059,7 @@ deczeros(n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last
 Create a decomposition of the specified type `T` where each factor is initialized to contain only ones.
 
 # Arguments
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `n::Union{DecSize,FactorSize}`: Size matrix or factor size, representing the dimensions of the modes in each factor of the decomposition.
 - `r::Union{Int,DecRank}`: Rank or rank vector, representing the ranks of the decomposition.
 - `first::Int=0`: Optional first rank. Specifies the rank of the first mode dimension if `r` is not expressed using a vector.
@@ -1095,7 +1095,7 @@ Create a decomposition of the specified type `T` and fill each factor with rando
 
 # Arguments
 - `rng::AbstractRNG`: Random number generator to use for filling the decomposition with random numbers.
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `n::Union{DecSize,FactorSize}`: Size matrix or factor size, representing the dimensions of the modes in each factor of the decomposition.
 - `r::Union{Int,DecRank}`: Rank or rank vector, representing the ranks of the decomposition.
 - `first::Int=0`: Optional first rank. Specifies the rank of the first mode dimension if `r` is not expressed using a vector.
@@ -1106,6 +1106,7 @@ Create a decomposition of the specified type `T` and fill each factor with rando
 - A decomposition of type `Dec` with the specified data type `T`, where each factor is filled with random numbers generated by the provided `rng`.
 """
 decrand(rng::AbstractRNG, ::Type{T}, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0) where {T<:Number} = decrand!(rng, dec(T, n, r; first=first, last=last, len=len))
+
 """
     decrand(rng::AbstractRNG, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; first::Int=0, last::Int=0, len::Int=0)
 
@@ -1130,7 +1131,7 @@ decrand(rng::AbstractRNG, n::Union{DecSize,FactorSize}, r::Union{Int,DecRank}; f
 Create a decomposition of the specified type `T` and fill each factor with random numbers using the global random number generator (`Random.GLOBAL_RNG`).
 
 # Arguments
-- `T::Type{T}`: Data type of the elements in each factor.
+- `::Type{T}`: Data type of the elements in each factor.
 - `n::Union{DecSize,FactorSize}`: Size matrix or factor size, representing the dimensions of the modes in each factor of the decomposition.
 - `r::Union{Int,DecRank}`: Rank or rank vector, representing the ranks of the decomposition.
 - `first::Int=0`: Optional first rank. Specifies the rank of the first mode dimension if `r` is not expressed using a vector.
@@ -1392,7 +1393,7 @@ Insert a factor `V` into the decomposition type (vector of factors) `U` at the s
 
 # Throws
 Summarized Error list:
-- `ArgumentError`: If `path` is not "forward" or "backward".
+- `ArgumentError`: If `path` is neither "forward" nor "backward".
 - `DimensionMismatch`: If `ℓ` is out of range or if the ranks (of `U`, `V` or the factors of `U`) are inconsistent for the operation.
 
 Extended Error list:
@@ -1492,7 +1493,7 @@ Insert an identity factor into the decomposition type (vector of factors) `U` at
 
 # Throws
 Summarized Error list:
-- `ArgumentError`: If `path` is not "forward" or "backward".
+- `ArgumentError`: If `path` is neither "forward" nor "backward".
 - `DimensionMismatch`: If `ℓ` is out of range or if the ranks are inconsistent for this operation.
 
 Extended Error list:
@@ -1532,11 +1533,11 @@ Perform sequential contraction of components of a vector of factors `W` based on
 # Arguments
 - `W::Dec{T, N}`: Decomposition object of type `Dec`, which represents a vector of factors with elements of type `T` and with `N` as the number dimensions.
 - `Λ::Indices`: reference numbers specifying which components of (the vector of factors) `W` to contract. Can be a colon `Colon` (indicating all indices) or a `Vector{Int}` specifying particular indices.
-- `path::String=""`: keyword argument specifying the order of contraction. 
-  - `""` (default): path can be deduced from `Λ` if `Λ` is a colon or empty.
+- `path::String=""`: Keyword argument specifying the order of contraction. 
+  - `""` (default): Path can be deduced from `Λ` if `Λ` is a colon or empty.
   - `"forward"`: Contraction of components in a forward sequence.
   - `"backward"`: Contraction of components in a backward sequence.
-- `major::String="last"`: keyword argument indicating the primary direction for the contraction operation.
+- `major::String="last"`: Keyword argument indicating the primary direction for the contraction operation.
   - `"last"` (default): Contraction focuses on the last dimension.
   - `"first"`: Contraction focuses on the first dimension.
 
@@ -1591,6 +1592,7 @@ end
     decskp!(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N}
 
 Perform sequential contraction of all components of a decomposition `W` following the specified contraction path and direction.
+This function carries out the « Strong Kronecker Product » in place.
 
 # Arguments
 - `W::Dec{T, N}`: Decomposition object of type `Dec`, which represents a vector of factors with elements of type `T` and with `N` as the number of dimensions.
@@ -1607,7 +1609,7 @@ Perform sequential contraction of all components of a decomposition `W` followin
 
 # Throws
 - `ArgumentError`: If `path` is not one of `""`, `"forward"`, or `"backward"`.
-- `ArgumentError`: If  `major` is neither `"first"` nor `"last"`.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
 - `ArgumentError`: If the decomposition object `W` is empty (`L == 0`).
 """
 decskp!(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N} = decskp!(W, :; path=path, major=major)
@@ -1616,24 +1618,25 @@ decskp!(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N} 
     decskp(W::Dec{T,N}, Λ::Indices; path::String="", major::String="last") where {T<:Number,N}
 
 Perform a sequential contraction of selected components of a decomposition object (vector of factors) `W` based on specified indices `Λ`, a path (`"forward"`, `"backward"`, or `""`), and a major contraction direction.
+This function carries out the « Strong Kronecker Product » for specified factors in a decomposition and yields a new decomposition as result.
 
 # Arguments
 - `W::Dec{T, N}`: Decomposition object of type `Dec`, which represents a vector of factors with elements of type `T` and with `N` as the number dimensions.
-- `Λ::Indices`: reference numbers specifying which components of the decomposition obeject `W` to contract. Can be a colon `Colon` (indicating all indices), a `Vector{Int}`, or other types convertible to an index vector.
-- `path::String=""`: keyword argument specifying the order of contraction. 
+- `Λ::Indices`: Reference numbers specifying which components of the decomposition obeject `W` to contract. Can be a colon `Colon` (indicating all indices), a `Vector{Int}`, or other types convertible to an index vector.
+- `path::String=""`: Keyword argument specifying the order of contraction. 
   - `""` (default): Approved only if `Λ` is empty or `Λ` is a colon.
   - `"forward"`: Contraction of components in a forward sequence.
   - `"backward"`: Contraction of components in a backward sequence.
-- `major::String="last"`: keyword argument determining the primary direction for the contraction operation.
+- `major::String="last"`: Keyword argument determining the primary direction for the contraction operation.
   - `"last"` (default): Contraction focuses on last dimension.
   - `"first"`: Contraction focuses on first dimension.
 
 # Returns
-- `U`: result of contracting the selected components of `W` based on the provided indices `Λ` and the specified path and major direction.
+- `U`: Result of contracting the selected components of `W` based on the provided indices `Λ` and the specified path and major direction.
 
 # Throws
 - `ArgumentError`: If `path` is not one of `""`, `"forward"`, or `"backward"`.
-- `ArgumentError`: If `major` is not `"first"` or `"last"`.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
 - `ArgumentError`: If the decomposition object `W` is empty (`L == 0`).
 - `ArgumentError`: If `Λ` is empty.
 - `ArgumentError`: If `Λ` is not a contiguous set of integers.
@@ -1686,7 +1689,8 @@ end
 """
     decskp(W::Dec{T,N}; path::String="", major::String="last") where {T<:Number,N}
 
-Perform sequential contraction of all components of a decomposition `W` in a non-mutating way, following the specified contraction path and direction.
+Perform sequential contraction of all components of a decomposition `W`, following the specified contraction path and direction.
+This function carries out the « Strong Kronecker Product » for all factors in a decomposition and yields a new decomposition as result.
 
 # Arguments
 - `W::Dec{T, N}`: Decomposition object of type `Dec`, which represents a vector of factors with elements of type `T` and with `N` as the number of dimensions.
@@ -1781,14 +1785,14 @@ end
 Perform the Kronecker product on multiple decomposition objects, optionally with specified exponents for each decomposition object, and return a new decomposition object resulting from the product.
 
 # Arguments
-- `U::Union{Dec{T,N}, Pair{Dec{T,N}, Int}}`: The first decomposition object or a pair of a decomposition object and an exponent. If a pair, the exponent specifies how many times the decomposition object is repeated in the Kronecker product.
+- `U::Union{Dec{T,N}, Pair{Dec{T,N}, Int}}`: First decomposition object or a pair of a decomposition object and an exponent. If a pair, the exponent specifies how many times the decomposition object is repeated in the Kronecker product.
 - `V::Vararg{Union{Dec{T,N}, Pair{Dec{T,N}, Int}}, M}`: Additional decomposition objects or pairs of decomposition objects and exponents to include in the Kronecker product.
 
 # Returns
 - `W`: A new decomposition object resulting from the Kronecker product of the input decompositions, each raised to its corresponding exponent.
 
 # Throws
-- `ArgumentError`: If any exponent specified is negative.
+- `ArgumentError`: If any specified exponent is negative.
 - `ArgumentError`: If the input decompositions differ in the number of factors.
 """
 function deckp(U::Union{Dec{T,N},Pair{Dec{T,N},Int}}, V::Vararg{Union{Dec{T,N},Pair{Dec{T,N},Int}},M}) where {T<:Number,N,M}
@@ -2067,7 +2071,7 @@ Perform the Hadamard product (element-wise multiplication) of two decompositions
 - `W`: A new decomposition  of type `Dec`, which results from the Hadamard product of `U` and `V`.
 
 # Throws
-- `ArgumentError`: Thrown if `U` and `V` have a different number of factors or are inconsistent in mode size.
+- `ArgumentError`: If `U` and `V` have a different number of factors or are inconsistent in mode size.
 """
 function dechp(U::Dec{T,N}, V::Dec{T,N}) where {T<:Number,N}
 	m = decsize(U); L = declength(U)
@@ -2238,8 +2242,7 @@ Perform a truncated Singular Value Decomposition (SVD) on a decomposition object
 - `ρ`: Vector of integers representing the ranks after truncation for each decomposition step.
 - `σ`: Vector of vectors containing the singular values for each decomposition step.
 
-# Errors
-
+# Throws
 Summarized Error List:
 - `ArgumentError`: If any input arguments are invalid, for example incorrect dimensions, negative values where non-negative are expected or invalid strings for path or major.
 

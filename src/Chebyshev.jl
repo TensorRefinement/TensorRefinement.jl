@@ -15,7 +15,7 @@ Evaluate the first `r` Chebyshev polynomials at the points specified in the vect
 
 # Returns
 - `Matrix{T}`: An `n` x `r` matrix `V`, where `n` is the length of `t`. The entry `V[i,j]` 
-  contains the value of the `(j-1)`-th Legendre polynomial evaluated at `t[i]`.
+  contains the value of the `(j-1)`-th Chebyshev polynomial evaluated at `t[i]`.
 
 # Throws
 - `ArgumentError`: If `r` is negative.
@@ -58,7 +58,7 @@ end
 Compute the Chebyshev nodes of the second kind (also called « Chebyshev extrema ») on the interval [-1, 1].
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev nodes to compute.
 
 # Returns
@@ -86,11 +86,11 @@ end
 Compute the transformation matrix that converts from Chebyshev coefficients to Chebyshev extrema coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev coefficients to Chebyshev extrema coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev coefficients to Chebyshev extrema coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -108,11 +108,11 @@ end
 Compute the transformation matrix that converts from Chebyshev extrema coefficients to Chebyshev coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev extrema coefficients to Chebyshev coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev extrema coefficients to Chebyshev coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -138,7 +138,7 @@ Compute the transformation matrix that converts from Chebyshev extrema coefficie
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev extrema coefficients to Legendre coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev extrema coefficients to Legendre coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -151,11 +151,11 @@ chebextoleg(::Type{T}, r::Int) where {T<:AbstractFloat} = chebtoleg(T, r)*chebex
 Compute the transformation matrix that converts from Chebyshev extrema coefficients to normalized Legendre coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev extrema coefficients to normalized Legendre coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev extrema coefficients to normalized Legendre coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -168,7 +168,7 @@ chebextolegn(::Type{T}, r::Int) where {T<:AbstractFloat} = chebtolegn(T, r)*cheb
 Compute the Chebyshev nodes of the first kind (also called « Chebyshev roots ») on the interval (-1, 1).
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev roots to compute.
 
 # Returns
@@ -196,11 +196,11 @@ end
 Compute the transformation matrix from Chebyshev polynomial coefficients to Chebyshev root polynomial coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix representing the transformation from Chebyshev coefficients to Chebyshev root coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev coefficients to Chebyshev root coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -220,11 +220,11 @@ end
 Compute the transformation matrix from Chebyshev root polynomial coefficients to Chebyshev polynomial coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix representing the transformation from Chebyshev root coefficients to Chebyshev coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev root coefficients to Chebyshev coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -245,11 +245,11 @@ end
 Compute the transformation matrix that converts from Chebyshev root coefficients to Legendre coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev root coefficients to Legendre coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev root coefficients to Legendre coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -262,11 +262,11 @@ chebrttoleg(::Type{T}, r::Int) where {T<:AbstractFloat} = chebtoleg(T, r)*chebrt
 Compute the transformation matrix that converts from Chebyshev root coefficients to normalized Legendre coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev root coefficients to normalized Legendre coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev root coefficients to normalized Legendre coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -279,11 +279,11 @@ chebrttolegn(::Type{T}, r::Int) where {T<:AbstractFloat} = chebtolegn(T, r)*cheb
 Compute the transformation matrix that converts from Chebyshev coefficients to Legendre coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev coefficients to Legendre coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev coefficients to Legendre coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -318,11 +318,11 @@ end
 Compute the transformation matrix that converts from Chebyshev coefficients to normalized Legendre coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from Chebyshev coefficients to normalized Legendre coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Chebyshev coefficients to normalized Legendre coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -335,11 +335,11 @@ chebtolegn(::Type{T}, r::Int) where {T<:AbstractFloat} = legtolegn(T, r)*chebtol
 Compute the transformation matrix that converts from Legendre coefficients to Chebyshev coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Legendre polynomials.
 
 # Returns
-Matrix that represents the transformation from Legendre coefficients to Chebyshev coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from Legendre coefficients to Chebyshev coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -372,11 +372,11 @@ end
 Compute the transformation matrix that converts from normalized Legendre coefficients to Chebyshev coefficients.
 
 # Arguments
-- `T::Type{T}`: Type of the floating-point numbers.
+- `::Type{T}`: Type of the floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
-Matrix that represents the transformation from normalized Legendre coefficients to Chebyshev coefficients.
+- `Matrix{T}`: A matrix of size `r` x `r` representing the transformation from normalized Legendre coefficients to Chebyshev coefficients.
 
 # Throws
 - `ArgumentError`: If the number of degrees of freedom `r` is not positive.
@@ -389,7 +389,7 @@ legntocheb(::Type{T}, r::Int) where {T<:AbstractFloat} = legtocheb(T, r)*legntol
 Computes the differentiation matrix for Chebyshev polynomials of degree up to `r-1`.
 
 # Arguments
-- `T::Type{T}`: Numeric type for the matrix elements; subtype of `AbstractFloat`.
+- `::Type{T}`: Numeric type for the matrix elements; subtype of `AbstractFloat`.
 - `r::Int`: Number of Chebyshev polynomials (degree).
 
 # Returns
@@ -422,7 +422,7 @@ end
 Computes the differentiation matrix for `r` Chebyshev extrema nodes.
 
 # Arguments
-- `T::Type{T}`: Numeric type for the matrix elements; subtype of `AbstractFloat`.
+- `::Type{T}`: Numeric type for the matrix elements; subtype of `AbstractFloat`.
 - `r::Int`: Number of extrema nodes.
 
 # Returns
@@ -579,7 +579,7 @@ end
 Compute the Chebyshev reference matrix (with entries of type `T`) for Chebyshev polynomials up to a degree of `r-1`.
 
 # Arguments
-- `T::Type{T}`: Type of floating-point numbers.
+- `::Type{T}`: Type of floating-point numbers.
 - `r::Int`: Number of Chebyshev polynomials.
 
 # Returns
@@ -651,10 +651,10 @@ Evaluate a Chebyshev decomposition `U` at the points specified in `t`, and modif
 - `major::String`: Order of decomposition, either `"first"` or `"last"` (default is `"last"`).
 
 # Returns
-- `Dec{T,N}`:The evaluated decomposition `U` at points `t`.
+- `Dec{T,N}`: The evaluated decomposition `U` at points `t`.
 
 # Throws
-- `ArgumentError` if `major` is not `"first"` or `"last"`.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
 """
 function chebdeceval!(U::Dec{T,N}, t::Vector{T}; major::String="last") where {T<:AbstractFloat,N}
 	if major ∉ ("first", "last")

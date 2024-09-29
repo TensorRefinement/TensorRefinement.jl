@@ -230,12 +230,12 @@ Sentence summarizing the function.
 - `major::String="last"`: Specifies the major axis ("first" or "last") for the operation. The default is `"last"`.
 
 # Returns
-Returns the result ....
+- `MatrixDec{T}`: Matrix decomposition `M` representing ...
 
 # Throws
 - `ArgumentError`: If `L` is negative.
 - `ArgumentError`: If `d` is not positive.
-- `ArgumentError`: If `major` is not `"first"` or `"last"`.
+- `ArgumentError`: If `major` is neither `"first"` or `"last"`.
 """
 diffdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:FloatRC} = diffdn(T, L, L, d; major=major)
 
@@ -350,7 +350,7 @@ Summary Sentence for function.
 - `major::String="last"`: Specifies the major axis ("first" or "last") for the operation. The default is `"last"`.
 
 # Returns
-Returns the result...
+- `MatrixDec{T}`: Matrix decomposition `M` representing ...
 
 # Throws
 - `ArgumentError`: If `L` is less than 1.

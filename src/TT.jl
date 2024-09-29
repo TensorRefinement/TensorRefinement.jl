@@ -1,17 +1,17 @@
 using LinearAlgebra, Random
 using TensorRefinement.Auxiliary
 
-import Base: Base.length, Base.deepcopy, Base.reverse!, Base.ndims, Base.size, Base.ones, Base.zeros
-import Base: Base.fill!
-import Random: Random.rand!
-import LinearAlgebra: LinearAlgebra.rank
-import Base: Base.permutedims!
-import Base: Base.getindex
-import Base: Base.append!, Base.prepend!, Base.push!, Base.pushfirst!, Base.pop!, Base.popfirst!, Base.insert!, Base.deleteat!
-import Base: Base.vcat, Base.hcat
-import LinearAlgebra: LinearAlgebra.lmul!, LinearAlgebra.rmul!
-import Base: Base.*, Base.kron, Base.+
-import LinearAlgebra: LinearAlgebra.qr!, LinearAlgebra.svd!
+import Base: length, reverse!, ndims, size, ones, zeros
+import Base: fill!
+import Random: rand!
+import LinearAlgebra: rank
+import Base: permutedims!
+import Base: getindex
+import Base: append!, prepend!, push!, pushfirst!, pop!, popfirst!, insert!, deleteat!
+import Base: vcat, hcat
+import LinearAlgebra: lmul!, rmul!
+import Base: *, kron, +
+import LinearAlgebra: qr!, svd!
 
 export TT
 export length, ndims, size, rank, ranks
@@ -441,7 +441,7 @@ Return a deep copy of the tensor train object `U`.
 # Returns
 - `TT{T,N}`: A deep copy of `U`.
 """
-deepcopy(U::TT{T,N}) where {T<:Number,N} = TT(deepcopy(U.factors))
+deepcopy(U::TT{T,N}) where {T<:Number,N} = TT(Base.deepcopy(U.factors))
 
 """
     reverse!(W::TT{T,N})
@@ -1763,7 +1763,7 @@ end
 """
     ⊗(U₁::Dec{T,N}, U₂::Dec{T,N})
 
-An alias for `kron(U₁, U₂)`. Compute the Kronecker product of two decompositions `U₁` and `U₂`.
+An alias for [`kron`](@ref). Compute the Kronecker product of two decompositions `U₁` and `U₂`.
 
 # Arguments
 - `U₁::Dec{T,N}`: First decomposition of type `Dec`, which represents a vector of factors with elements of type `T` and with `N` as the number dimensions.
@@ -2145,7 +2145,7 @@ Consider specified path and tolerances on the tensor train `W`. Assume that the 
 
 # Throws
 - `ArgumentError`: If any input arguments are invalid, for example incorrect dimensions, negative values where non-negative are expected or invalid strings for path or major.
-- For full error control, see default `svd!`.
+- For full error control, see default [`svd!`](@ref).
 """
 svd!(W::TT{T,N}, Λ::Path; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") where {T<:FloatRC,N} = svd!(W, Λ, :; path=path, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, maxrank=maxrank, major=major)
 
@@ -2175,6 +2175,6 @@ Consider specified path and tolerances on the tensor train `W`. Assume that the 
 
 # Throws
 - `ArgumentError`: If any input arguments are invalid, for example incorrect dimensions, negative values where non-negative are expected or invalid strings for path or major.
-- For full error control, see default `svd!`.
+- For full error control, see default [`svd!`](@ref).
 """
 svd!(W::TT{T,N}; path::String="", aTol::Float2=0.0, aTolDistr::Float2=0.0, rTol::Float2=0.0, rTolDistr::Float2=0.0, maxrank::Int2=0, major::String="last") where {T<:FloatRC,N} = svd!(W, :, :; path=path, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, maxrank=maxrank, major=major)

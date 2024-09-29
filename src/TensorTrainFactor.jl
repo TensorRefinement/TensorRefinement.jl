@@ -34,10 +34,10 @@ const MatrixFactor{T} = Factor{T,4} where T<:Number
 Determine the sizes of the mode dimensions of the given factor `U` in a vector, excluding the first and last dimensions.
 
 # Arguments
-- `U::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: Factor of type `Factor` with elements of type `T` and with `N` as the number dimensions.
 
 # Returns
-- `Factorsize(n)`: custom type `Factorsize` that holds the mode dimensions of `U` excluding the first and last dimension as a vector.
+- `Factorsize(n)`: Custom type `Factorsize` that holds the mode dimensions of `U` excluding the first and last dimension as a vector.
 
 # Throws
 - `ArgumentError`: If factor exhibits only one or no rank dimension.
@@ -61,7 +61,7 @@ end
 Determine the first and last rank dimension of a given factor `U`.
 
 # Arguments
-- `U::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: Factor of type `Factor` with elements of type `T` and with `N` as the number dimensions.
 
 # Returns
 - Tuple `(sz[1], sz[end])` where `sz[1]` is the first and `sz[end]` is the last dimension of the input tensor.
@@ -87,10 +87,10 @@ end
 Determine the number of entries in the given factor.
 
 # Arguments
-- `U::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Factor{T, N}`: Factor of type `Factor` with elements of type `T` and with `N` as the number dimensions.
 
 # Returns
-- An integer specifiying the number of entries in the given [`Factor`].
+- An integer specifiying the number of entries in the given `Factor`.
 """
 factornumentries(U::Factor{T,N}) where {T<:Number,N} = length(U)
 
@@ -105,7 +105,7 @@ factorstorage(U::Factor{T,N}) where {T<:Number,N} = factornumentries(U)
 Return the number of mode dimensions excluding the first and last dimension.
 
 # Arguments
-- `::Factor{T, N}`: factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `::Factor{T, N}`: Factor of type `Factor` with elements of type `T` and with `N` as the number dimensions.
 
 # Returns
 - An integer representing the number of mode dimensions, which is `N - 2` (number of entries in [`factorsize`](@ref)).
@@ -126,7 +126,7 @@ end
 Reshape a given tensor `U` into a factor that can be used in further TT-operations.
 
 # Arguments
-- `U::Array{T, N}`: Multi-dimensional array with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
+- `U::Array{T, N}`: Multi-dimensional array with elements of type `T` and with `N` as the number dimensions.
 
 # Returns
 - A reshaped version of the tensor `U` with a single first and last dimension to facilitate TT-operations.
@@ -232,7 +232,7 @@ Function is a variant of the more general `factor` function, which allows reshap
 - A reshaped and permuted factor based on the mode sizes `m` and permutation `π`.
 
 # Throws
-- `ArgumentError`: If `m` is not an integer, a vector or tuple of integers, or an empty vector or tuple.
+- `ArgumentError`: If `m` is none of the following: integer, vector or tuple of integers, an empty vector or tuple.
 """
 factor(U::Vector{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}, π::Union{NTuple{M,Int},Vector{Int}}) where {T<:Number,M} = factor(U[:,:], m, (), π)
 
@@ -251,7 +251,7 @@ Function is a variant of the more general `factor` function, which reshapes a ve
 - A reshaped and permuted factor based on the mode sizes `m` with a natural permutation.
 
 # Throws
-- `ArgumentError`: If `m` is not an integer, a vector or tuple of integers, or an empty vector or tuple.
+- `ArgumentError`: If `m` is none of the following: integer, vector or tuple of integers, empty vector or tuple.
 """
 factor(U::Vector{T}, m::Union{Int,NTuple{M,Int},Vector{Int},Vector{Any}}) where {T<:Number,M} = factor(U[:,:], m, (), collect(1:length(m)))
 
@@ -581,7 +581,7 @@ Function acts as a wrapper around `factormodetranspose` to convert the vector `�
 - `π::Vector{Int}`: Permutation of the mode dimensions of `U`. Should contain exactly `N - 2` elements to allow for permutation of the mode dimensions.
 
 # Returns
-- New factor resulting from permuting the mode dimensions of `U` according to `π`.
+- A new factor resulting from permuting the mode dimensions of `U` according to `π`.
 
 # Throws
 - `ArgumentError`: If `U` has fewer than one mode dimension.
@@ -696,7 +696,7 @@ Contract two factors `U` and `V` along their shared rank dimensions. Function su
 
 # Throws
 - `ArgumentError`: If `U` and `V` have inconsistent ranks
-- `ArgumentError`: If `major` is not `"last"` or `"first"`.
+- `ArgumentError`: If `major` is neither `"last"` nor `"first"`.
 """
 function factorcontract(U::Factor{T,N}, V::Factor{T,N}; rev::Bool=false, major::String="last") where {T<:Number,N}
 	if major ∉ ("first","last")
@@ -896,11 +896,11 @@ end
 Perform a Kronecker product of multiple factors (optionally raised to specified nonnegative integer exponents).
 
 # Arguments
-- `U::Union{Factor{T, N}, Pair{Factor{T, N}, Int}}`: first factor can either be a `Factor` type or a pair `(Factor, Int)`. If given as a pair, the integer is the exponent for the respective factor in the Kronecker product.
-- `V::Vararg{Union{Factor{T, N}, Pair{Factor{T, N}, Int}}, M}`: variable number (denoted by M) of additional factors, each of which can also be either a `Factor` type or a pair `(Factor, Int)`. The same usage for the integer applies as in the above line.
+- `U::Union{Factor{T, N}, Pair{Factor{T, N}, Int}}`: First factor can either be a `Factor` type or a pair `(Factor, Int)`. If given as a pair, the integer is the exponent for the respective factor in the Kronecker product.
+- `V::Vararg{Union{Factor{T, N}, Pair{Factor{T, N}, Int}}, M}`: Variable number (denoted by M) of additional factors, each of which can also be either a `Factor` type or a pair `(Factor, Int)`. The same usage for the integer applies as in the above line.
 
 # Returns
-- `W`: resulting tensor (or matrix if d = 0) after the Kronecker products of all provided factors (with optionally some factors exponentiated). Final tensor is a result of a series of multiplications and reshaping operations.
+- `W`: Resulting tensor (or matrix if d = 0) after the Kronecker products of all provided factors (with optionally some factors exponentiated). Final tensor is a result of a series of multiplications and reshaping operations.
 
 # Throws
 - `ArgumentError`: If a negative exponent is provided in a pair `(Factor, Int)`.
@@ -958,8 +958,8 @@ end
 Compute the higher-order tensor product of two factors `U` and `V`. Resulting factor has dimensions formed by multiplying the ranks and mode sizes of `U` and `V`.
 
 # Arguments
-- `U::Factor{T,N}`: First factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
-- `V::Factor{T,N}`: Second factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions.
+- `U::Factor{T,N}`: First factor of type `Factor` with elements of type `T` and with `N` dimensions.
+- `V::Factor{T,N}`: Second factor of type `Factor` with elements of type `T` and with `N` dimensions.
 
 # Returns
 - A reshaped tensor representing the higher-order product of `U` and `V`, with dimensions `(p * r, n..., q * s)` where:
@@ -1062,7 +1062,7 @@ end
 Project the factor `U` onto the subspace spanned by the factor `W`, while storing the projection in `V`. The function modifies `U` and `V` based on the projection.
 
 # Arguments
-- `V::Factor{T,N}`: Resulting factor (of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` dimensions) where the projection will be stored. Should have mode size `1,...,1` and ranks consistent with `U` and `W`.
+- `V::Factor{T,N}`: Resulting factor (of type `Factor` with elements of type `T` and with `N` dimensions) where the projection will be stored. Should have mode size `1,...,1` and ranks consistent with `U` and `W`.
 - `U::Factor{T,N}`: Factor (of aforementioned type) to be projected. Must have the same mode size as `W`.
 - `W::Factor{T,N}`: Factor (also of aforementioned type) that defines the subspace for projection. Must have the same mode size as `U`.
 - `rev::Bool=false`: Keyword argument that determines the orientation of the projection operation.
@@ -1125,14 +1125,14 @@ end
 Perform a QR or LQ factorization of the tensor `U`, depending on the value of the keyword argument `rev` (reverse). 
 
 # Arguments
-- `U::Factor{T, N}`: mutable factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and with `N` as the number dimensions.
-- `rev::Bool=false`: keyword argument that determines the type of factorization. If `false`, performs a QR factorization; if `true`, performs an LQ factorization.
-- `factf`: keyword argument that specifies the chosen factorization function. By default, `LinearAlgebra.qr!` and `LinearAlgebra.lq!` are used respectively (depending on `rev`).
+- `U::Factor{T, N}`: Mutable factor of type `Factor` with elements of type `T` and with `N` as the number dimensions.
+- `rev::Bool=false`: Keyword argument that determines the type of factorization. If `false`, performs a QR factorization; if `true`, performs an LQ factorization.
+- `factf`: Keyword argument that specifies the chosen factorization function. By default, `LinearAlgebra.qr!` and `LinearAlgebra.lq!` are used respectively (depending on `rev`).
 
 # Returns
 - tuple `(U, R)`, where:
-  - `U`: transformed tensor after applying the QR or LQ factorization. (N-dimensional)
-  - `R`: factor tensor obtained by reshaping the factor matrix of the QR or LQ factorization (N-dimensional)
+  - `U`: Transformed tensor after applying the QR or LQ factorization. (N-dimensional)
+  - `R`: Factor tensor obtained by reshaping the factor matrix of the QR or LQ factorization (N-dimensional)
 """
 function factorqr!(U::Factor{T,N}; rev::Bool=false, factf=(rev ? A -> LinearAlgebra.lq!(A) : A -> LinearAlgebra.qr!(A))) where {T<:FloatRC,N}
 	n = factorsize(U); p,q = factorranks(U); m = ones(Int, length(n))
@@ -1377,7 +1377,7 @@ rank=0 leads to no rank thresholding
 Perform a singular value decomposition (SVD) of the factor `W` where the factor dimensions are adjusted accordingly and optional thresholding is carried out based on specified parameters. 
 
 # Arguments
-- `W::Factor{T, N}`: Input factor of type `Factor` with elements of type `T` (subtype of `FloatRC`: any real or complex floating point) and `N` dimensions.
+- `W::Factor{T, N}`: Input factor of type `Factor` with elements of type `T` and `N` dimensions.
 - `m::Union{FactorSize, Colon}`: Mode-size parameter for first dimension. Can be a [`FactorSize`](@ref) vector specifying the sizes of the mode dimensions or `Colon` to represent all indices.
 - `n::Union{FactorSize, Colon}`: Mode-size parameter for second dimension. Can also be a [`FactorSize`](@ref) vector or `Colon`.
 - `soft::S=zero(S)`: Keyword argument specifying the soft threshold for singular value truncation. Must be nonnegative and finite.
@@ -1403,7 +1403,7 @@ Perform a singular value decomposition (SVD) of the factor `W` where the factor 
 Summarized Error List:
 - `ArgumentError`: If both `m` and `n` are specified as `Colon`, this causes ambiguity.
 - `ArgumentError`: If either `m` or `n` is specified with non-positive or inconsistent dimensions.
-- `ArgumentError`: If `major` is not `"first"` or `"last"`.
+- `ArgumentError`: If `major` is neither `"first"` nor `"last"`.
 - `ArgumentError`: If `soft`, `hard`, `atol`, or `rtol` are negative or not finite.
 - `ArgumentError`: If `rank` is negative.
 - `DimensionMismatch`: If mode-size vectors `m` and `n` are inconsistent with dimensions of `W`.

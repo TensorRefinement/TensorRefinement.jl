@@ -42,10 +42,10 @@ const Int3 = Union{Int,Vector{Int},Vector{Vector{Int}}}
 
 Return the machine epsilon (smallest difference between distinct floating point numbers) for the floating-point type `T`.
 
-Arguments
+# Arguments
 - `S::Type{S}`: A type that is a subtype of `FloatRC{T}`, where `T` is a floating-point type (`AbstractFloat`).
 
-Returns
+# Returns
 - `T`: The machine epsilon of the floating-point type `T`.
 """
 compfloateps(::Type{S}) where {T<:AbstractFloat,S<:FloatRC{T}} = eps(T)
@@ -55,10 +55,10 @@ compfloateps(::Type{S}) where {T<:AbstractFloat,S<:FloatRC{T}} = eps(T)
 
 Return the numeric value `2` as the same type as `one(T)`. Useful for consistent numeric operations involving the number two.
 
-Arguments
-- `T::Type{T}`: Numeric type (`Number`).
+# Arguments
+- `::Type{T}`: Numeric type (`Number`).
 
-Returns
+# Returns
 - `T`: Number `2` as type `T`.
 """
 two(::Type{T}) where T<:Number = 2*one(T)
@@ -68,12 +68,12 @@ two(::Type{T}) where T<:Number = 2*one(T)
 
 Convert several index specifications to a vector of integers. Function supports Julia indexing types like `Colon`, `Int`, `UnitRange`, `StepRange`, `Tuple`, and `Nothing`.
 
-Arguments
+# Arguments
 - `σ::Indices`: Index specification. Can be of various types such as `Colon`, `Int`, `UnitRange`, `StepRange`, `Tuple`, `Vector{Any}`, or `Nothing`.
 - `min::Int=1`: Minimum value for the range (applicable when `σ` is `Colon`).
 - `max::Int=0`: Maximum value for the range (applicable when `σ` is `Colon`).
 
-Returns
+# Returns
 - `Vector{Int}`: Vector of integers derived from the specified index.
 """
 function indvec(σ::Indices; min::Int=1, max::Int=0)
@@ -93,17 +93,17 @@ end
 
 Apply thresholding to the vector `c` based on soft, hard, and overall thresholds (`τsoft`, `τhard`, and `τ`). Optional truncation of the vector to maintain a specified rank `r` available.
 
-Arguments
+# Arguments
 - `c::Vector{T}`: Vector of elements of Type `T`.
 - `τsoft::T`: Soft threshold value. All elements less than or equal to this value are set to zero, all above are shrunken towards zero.
 - `τhard::T`: Hard threshold value. All elements less than or equal to this value are set to zero.
 - `τ::T`: Overall tolerance threshold. Elements are truncated based on this value.
 - `r::Int`: Desired rank of the vector. Only the first `r` elements are kept, all others are being set to zero.
 
-Returns
+# Returns
 - `Tuple{Vector{T}, T, Int}`: Tuple containing the thresholded vector, the error (ε), and the new rank (ρ).
 
-Throws
+# Throws
 - `ArgumentError`: If `τsoft` is negative.
 - `ArgumentError`: If `τhard` is negative.
 - `ArgumentError`: If `τ` is negative.
@@ -271,7 +271,7 @@ end
     modemul(A::AbstractArray{<:Number,N}, B::Vararg{Pair{Int,<:AbstractMatrix{<:Number}},M}) where {N,M}
 
 Perform a mode multiplication of an N-dimensional array `A` with multiple matrices, each matrix corresponding to a specific mode (dimension) of `A`.
-Function applies several mode multiplications to the tensor `A` such that it is transformed according to the provided matrices.
+Function applies several mode multiplications to the tensor `A`, such that it is transformed according to the provided matrices.
 
 # Arguments
 - `A::AbstractArray{<:Number,N}`: N-dimensional array of type `Number`.

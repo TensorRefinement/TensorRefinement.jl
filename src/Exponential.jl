@@ -115,7 +115,7 @@ Construct a reference mask for trigonometric interpolation using two points at `
 - `Array{T,3}`: Three-dimensional array of size `2r × 2r × 2`, where `r` is the length of `ν`.
 
 # Throws
-- `ArgumentError` if `ν` is empty (i.e., `r == 0`).
+- `ArgumentError`: If `ν` is empty (i.e., `r == 0`).
 """
 function trigrefmask2(ν::Vector{T}) where {T<:AbstractFloat}
 	r = length(ν)
