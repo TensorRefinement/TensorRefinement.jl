@@ -20,4 +20,7 @@ include("Chebyshev.jl")
 include("FEM.jl")
 @reexport using .FEM
 
+include("ComplexGeometry.jl")
+@reexport using .ComplexGeometry
+
 end
