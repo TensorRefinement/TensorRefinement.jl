@@ -94,7 +94,7 @@ function diffdn(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	c0 = Int[3,1]
 	c1 = Int[0,1]
 	wk = (d > 1) ? kron(ntuple(k -> c0, Val(d))...) : c0
-	w = wk.*((1/ρ)^(2*ℓ) / 3^d)
+	w = wk.*((1/ρ)^(2*ℓ) / (3*one(T))^d)
 	for k ∈ 1:d
 		wk = (d > 1) ? kron(ntuple(k -> c0, Val(d-k))..., c1, ntuple(k -> c0, Val(k-1))...) : c1
 		w .+= wk.*((2/ρ)^(2*ℓ) * 4 / 3^(d-1))
@@ -173,7 +173,7 @@ function diffdd(::Type{T}, L::Int, ℓ::Int, d::Int; major::String="last") where
 	c0 = Int[3,1]
 	c1 = Int[0,1]
 	wk = (d > 1) ? kron(ntuple(k -> c0, Val(d))...) : c0
-	w = wk.*((1/ρ)^(2*ℓ) / 3^d)
+	w = wk.*((1/ρ)^(2*ℓ) / (3*one(T))^d)
 	for k ∈ 1:d
 		wk = (d > 1) ? kron(ntuple(k -> c0, Val(d-k))..., c1, ntuple(k -> c0, Val(k-1))...) : c1
 		w .+= wk.*((2/ρ)^(2*ℓ) * 4 / 3^(d-1))
@@ -474,10 +474,10 @@ function diffbpxdn(::Type{T}, L::Int, d::Int; major::String="last") where {T<:Fl
 	c0 = Int[3,1]
 	c1 = Int[0,1]
 	wk = (d > 1) ? kron(ntuple(k -> c0, Val(d))...) : c0
-	w = wk./3^d
+	w = wk./(3*one(T))^d
 	for k ∈ 1:d
 		wk = (d > 1) ? kron(ntuple(k -> c0, Val(d-k))..., c1, ntuple(k -> c0, Val(k-1))...) : c1
-		w .+= wk.*(4/3^(d-1))
+		w .+= wk.*(4*one(T)/3^(d-1))
 	end
 	w .= sqrt.(w)
 	C = T[  1//2 -1//2; 1//2 1//2 ]
@@ -560,10 +560,10 @@ function diffbpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:Fl
 	c0 = Int[3,1]
 	c1 = Int[0,1]
 	wk = (d > 1) ? kron(ntuple(k -> c0, Val(d))...) : c0
-	w = wk./3^d
+	w = wk./(3*one(T))^d
 	for k ∈ 1:d
 		wk = (d > 1) ? kron(ntuple(k -> c0, Val(d-k))..., c1, ntuple(k -> c0, Val(k-1))...) : c1
-		w .+= wk.*(4/3^(d-1))
+		w .+= wk.*(4*one(T)/3^(d-1))
 	end
 	w .= sqrt.(w)
 	C = T[  1//2 -1//2; 1//2 1//2 ]

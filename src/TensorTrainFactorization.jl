@@ -963,8 +963,8 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(soft .< 0)
 		throw(ArgumentError("soft should be a nonnegative Float or a vector of such"))
 	end
-	if isa(soft, S)
-		soft = soft*ones(S, K)
+	if isa(soft, AbstractFloat)
+		soft = ones(S, K).*convert(S, soft)
 	elseif length(soft) ≠ K
 		throw(ArgumentError("soft, passed as a vector, has incorrect length"))
 	end
@@ -972,8 +972,8 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(hard .< 0)
 		throw(ArgumentError("hard should be a nonnegative Float or a vector of such"))
 	end
-	if isa(hard, S)
-		hard = hard*ones(S, K)
+	if isa(hard, AbstractFloat)
+		hard = ones(S, K).*convert(S, hard)
 	elseif length(hard) ≠ K
 		throw(ArgumentError("hard, passed as a vector, has incorrect length"))
 	end
@@ -981,8 +981,8 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(aTol .< 0)
 		throw(ArgumentError("aTol should be a nonnegative Float or a vector of such"))
 	end
-	if isa(aTol, S)
-		aTol = aTol*ones(S, K)/sqrt(one(S)*K)
+	if isa(aTol, AbstractFloat)
+		aTol = ones(S, K).*(convert(S, aTol)/sqrt(one(S)*K))
 	elseif length(aTol) ≠ K
 		throw(ArgumentError("aTol, passed as a vector, has incorrect length"))
 	end
@@ -990,8 +990,8 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(aTolDistr .< 0)
 		throw(ArgumentError("aTolDistr should be a nonnegative Float64 or a vector of such"))
 	end
-	if isa(aTolDistr, S)
-		aTolDistr = aTolDistr*ones(S, K)/sqrt(one(S)*K)
+	if isa(aTolDistr, AbstractFloat)
+		aTolDistr = ones(S, K).*(convert(S, aTolDistr)/sqrt(one(S)*K))
 	elseif length(aTolDistr) ≠ K
 		throw(ArgumentError("aTolDistr, passed as a vector, has incorrect length"))
 	end
@@ -999,8 +999,8 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(rTol .< 0)
 		throw(ArgumentError("rTol should be a nonnegative Float or a vector of such"))
 	end
-	if isa(rTol, S)
-		rTol = rTol*ones(S, K)/sqrt(one(S)*K)
+	if isa(rTol, AbstractFloat)
+		rTol = ones(S, K).*(convert(S, rTol)/sqrt(one(S)*K))
 	elseif length(rTol) ≠ K
 		throw(ArgumentError("rTol, passed as a vector, has incorrect length"))
 	end
@@ -1008,8 +1008,8 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	if any(rTolDistr .< 0)
 		throw(ArgumentError("rTolDistr should be a nonnegative Float or a vector of such"))
 	end
-	if isa(rTolDistr, S)
-		rTolDistr = rTolDistr*ones(S, K)/sqrt(one(S)*K)
+	if isa(rTolDistr, AbstractFloat)
+		rTolDistr = ones(S, K).*(convert(S, rTolDistr)/sqrt(one(S)*K))
 	elseif length(rTolDistr) ≠ K
 		throw(ArgumentError("rTolDistr, passed as a vector, has incorrect length"))
 	end
