@@ -632,4 +632,377 @@ function diffbpxdd(::Type{T}, L::Int, d::Int; major::String="last") where {T<:Fl
 end
 
 
+
+
+
+
+
+
+
+
+
+
+
+checkdim(d) = throw(ArgumentError("Dimension parameter d should be a positive integer"))
+checkdim(d::Int) = d > 0 || throw(ArgumentError("Dimension parameter d should be a positive integer"))
+
+implementationrequired(::Type{S}) where {S} = throw(ErrorException("The implementation of method "*string(StackTraces.stacktrace()[2].func)*" for type "*string(S)*" is currently missing"))
+
+
+##################
+### Refinement ###
+
+abstract type RefinementBasis{d} end #  for now, this is always of order one
+
+abstract type Refinement{d,B<:RefinementBasis{d}} end
+
+
+### Specification of required methods
+cube_nodal_to_normedQ(::S) where {S<:Refinement} = implementationrequired(S)
+cube_nodal_evaluate(::S, ::NTuple{d,Vector{T}}) where {T<:Number,d,S<:Refinement{d}} = implementationrequired(S)
+## some of the following four previously lead to ambiguity??? Currently that does not occur...
+cube_normedQ_to_normedF(::S, ::T, ::T) where {T<:AbstractFloat,S<:Refinement} = implementationrequired(S)
+### TO BE FIXED # cube_normedQ_to_normedF(::S, ::T, ::Matrix{T}) where {T<:AbstractFloat,S<:Refinement} = implementationrequired(S)
+### NOT NEEDED? # cube_normedQ_to_normedF(::S, ::T, ::T) where {T<:AbstractFloat,d,B<:RefinementBasis,S<:Refinement{d,B}} = implementationrequired(S)
+### TO BE FIXED # cube_normedQ_to_normedF(::S, ::T, ::Matrix{T}) where {T<:AbstractFloat,d,B<:RefinementBasis,S<:Refinement{d,B}} = implementationrequired(S)
+
+
+### Compositions
+cube_nodal_to_normedF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:Refinement} = cube_normedQ_to_normedF(re, κ₀, κ₁)*cube_nodal_to_normedQ(re)
+### TO BE FIXED # cube_nodal_to_normedF(re::S, κ₀::T, K₁::Matrix{T}) where {T<:AbstractFloat,S<:Refinement} = cube_normedQ_to_normedF(re, κ₀, K₁)*cube_nodal_to_normedQ(re)
+
+
+### Extensions
+
+function cube_nodal_refinement_factor(re::S, ::Val{n}) where {d,S<:Refinement{d},n}
+	T = Rational{Int}
+	m = ntuple(k -> n, Val(d))
+	p = ntuple(k -> 2, Val(d))
+	t = T[ i//n for i ∈ 0:n ]
+	V = cube_nodal_evaluate(re, ntuple(k -> t, Val(d)))
+	V = reshape(V, (m.+1)..., 2^d)
+	W = zeros(T, 2^d, m..., p...)
+	for α ∈ 1:2^d, i ∈ CartesianIndices(m), β ∈ CartesianIndices(p)
+		γ = Tuple(β).+Tuple(i).-1
+		W[α,i,β] = V[γ...,α]
+	end
+	reshape(W, 2^d, n^d, 2^d)
+end
+
+
+#########################################
+### Refinement with orthogonalization ###
+
+abstract type OrthMethod end
+
+struct OrthRefinement{d,B<:RefinementBasis{d},O<:OrthMethod} <: Refinement{d,B} end
+OrthRefinement(::B,::M) where {d,B<:RefinementBasis{d},M<:OrthMethod} = OrthRefinement{d,B,M}()
+
+cube_normedF_to_orth(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:OrthRefinement} = adjoint(cube_orth_to_normedF(re, κ₀, κ₁))
+
+### Specification of required methods
+cube_auxQ_to_nodal(::S) where {S<:OrthRefinement} = implementationrequired(S)
+cube_nodal_to_auxQ(::S) where {S<:OrthRefinement} = implementationrequired(S)
+cube_auxF_to_auxQ(::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:OrthRefinement} = implementationrequired(S)
+cube_auxQ_to_auxF(::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:OrthRefinement} = implementationrequired(S)
+
+
+### Compositions
+cube_auxF_to_nodal(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:OrthRefinement} = cube_auxQ_to_nodal(re)*cube_auxF_to_auxQ(re, κ₀, κ₁)
+cube_nodal_to_auxF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:OrthRefinement} = cube_auxQ_to_auxF(re, κ₀, κ₁)*cube_nodal_to_auxQ(re)
+cube_auxQ_to_normedQ(re::S) where {S<:OrthRefinement} = cube_nodal_to_normedQ(re)*cube_auxQ_to_nodal(re)
+cube_auxF_to_normedF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,S<:OrthRefinement} = cube_normedQ_to_normedF(re, κ₀, κ₁)*cube_auxQ_to_normedQ(re)*cube_auxF_to_auxQ(re, κ₀, κ₁)
+
+### Extensions
+
+cube_auxQ_refinement_factor(re::S, nn::Val{n}) where {S<:OrthRefinement,n} = factorcontract(factorcontract(permutedims(cube_auxQ_to_nodal(re)), cube_nodal_refinement_factor(re, nn)), permutedims(cube_nodal_to_auxQ(re)))
+
+cube_auxF_refinement_factor(re::S, κ₀::T, κ₁::T, nn::Val{n}) where {T<:AbstractFloat,d,S<:OrthRefinement{d},n} = factorcontract(factorcontract(permutedims(cube_auxF_to_auxQ(re, κ₀, κ₁)), Array{T}(cube_auxQ_refinement_factor(re, nn))), permutedims(cube_auxQ_to_auxF(re, κ₀/(√(n*one(T)))^d, κ₁*n/(√(n*one(T)))^d)))
+
+
+### Explicit orthogonalization
+struct OrthExplicit <: OrthMethod end
+
+cube_auxF_to_orth_to_normedF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthExplicit}} = cube_auxF_to_normedF(re, κ₀, κ₁),I
+
+cube_orth_to_normedF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthExplicit}} = cube_auxF_to_normedF(re, κ₀, κ₁)
+
+cube_auxF_to_orth(::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthExplicit}} = I
+
+cube_orth_to_auxF(::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthExplicit}} = I
+
+cube_auxF_to_orth_to_auxF(::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthExplicit}} = I,I
+
+cube_normedF_to_auxF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthExplicit}} = cube_normedF_to_orth(re, κ₀, κ₁)
+
+
+### Orthogonalization by pivoted QR
+struct OrthPQR <: OrthMethod end
+
+function cube_auxF_to_orth_to_normedF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthPQR}}
+	W = cube_auxF_to_normedF(re, κ₀, κ₁)
+	n = size(W, 2)
+	fact = qr!(W, Val(true))
+	Q = fact.Q*Matrix{T}(I, n, n)
+	R = fact.R[:,invperm(fact.p)]
+	Q,R
+end
+
+function cube_orth_to_normedF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthPQR}}
+	W = cube_auxF_to_normedF(re, κ₀, κ₁)
+	n = size(W, 2)
+	fact = qr!(W, Val(true))
+	Q = fact.Q*Matrix{T}(I, n, n)
+	Q
+end
+
+function cube_auxF_to_orth(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthPQR}}
+	W = cube_auxF_to_normedF(re, κ₀, κ₁)
+	fact = qr!(W, Val(true))
+	R = fact.R[:,invperm(fact.p)]
+	R
+end
+
+function cube_orth_to_auxF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthPQR}}
+	W = cube_auxF_to_normedF(re, κ₀, κ₁)
+	n = size(W, 2)
+	fact = qr!(W, Val(true))
+	R = UpperTriangular(triu!(fact.R))
+	Rinv = R\Matrix{T}(I, n, n)
+	Rinv = Rinv[invperm(fact.p),:]
+	Rinv
+end
+
+function cube_auxF_to_orth_to_auxF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthPQR}}
+	W = cube_auxF_to_normedF(re, κ₀, κ₁)
+	n = size(W, 2)
+	fact = qr!(W, Val(true))
+	R = UpperTriangular(triu!(fact.R))
+	Rinv = R\Matrix{T}(I, n, n)
+	R = R[:,invperm(fact.p)]
+	Rinv = Rinv[invperm(fact.p),:]
+	Rinv,R # orth_to_auxF, auxF_to_orth
+end
+
+function cube_normedF_to_auxF(re::S, κ₀::T, κ₁::T) where {T<:AbstractFloat,d,S<:OrthRefinement{d,<:RefinementBasis{d},OrthPQR}}
+	W = cube_auxF_to_normedF(re, κ₀, κ₁)
+	n = size(W, 2)
+	fact = qr!(W, Val(true))
+	Q = fact.Q*Matrix{T}(I, n, n)
+	R = UpperTriangular(triu!(fact.R))
+	(R\Q')[invperm(fact.p),:]
+end
+
+
+
+function cube_normedF_refine_dec(re::S, ::Type{C}, κ₀::T, κ₁::T, ℓ::Int, L::Int) where {d,S<:OrthRefinement{d},T<:AbstractFloat,C<:FloatRC{T}}
+	𝟙 = one(T)
+	if ℓ < 0
+		throw(ArgumentError("ℓ should be nonnegative"))
+	end
+	if L < ℓ
+		throw(ArgumentError("L should be at least ℓ"))
+	end
+	U = MatrixDec{C}(undef, L+2)
+	V = ones(C, 1, 1);
+	U[1] = factor(V, 1, 1)
+	VV = Matrix{C}(I, 2^d, 2^d);
+	V = factor(VV, 2^d, 2^d)
+	for j ∈ 1:ℓ
+		U[j+1] = V
+	end
+	ρ = √((2^d)𝟙)
+
+	FF = VectorFactor{T}(cube_auxQ_refinement_factor(re, Val(2)))
+	F = factormodereshape(FF, [2^d,1])
+	local YY,HH
+	for j ∈ L+1:-1:ℓ+1
+		μ₀ = κ₀*(1/ρ)^(j-1)
+		μ₁ = κ₁*(2/ρ)^(j-1)
+		X,Y = cube_auxF_to_orth_to_auxF(re, μ₀, μ₁)	# X is orth → auxF, Y is auxF → orth
+		Z = cube_auxF_to_auxQ(re, μ₀, μ₁)
+		H = cube_auxQ_to_auxF(re, μ₀, μ₁)
+		if j == L+1
+			V = cube_normedQ_to_normedF(re, μ₀, μ₁)*cube_auxQ_to_normedQ(re)*(Z*X) # Z*X is orth → auxQ
+			U[j+1] = reshape(permutedims(V), 2^d, :, 1, 1)
+		else
+			U[j+1] = factorcontract(permutedims(Z*X), factorcontract(F, permutedims(YY*HH))) # Z*X is orth → auxQ, YY*HH is auxQ → orth
+			if j == ℓ+1
+				QQ = cube_orth_to_normedF(re, μ₀, μ₁)
+				Q = reshape(QQ, 1, 1, :, 2^d)
+				U[j+1] = factorcontract(Q, U[j+1])
+			end
+		end
+		YY,HH = Y,H
+	end
+	U
+end
+
+
+
+### Convenience functions for the default values of parameters
+cube_auxF_to_nodal(re::S, ::Type{T}) where {T<:AbstractFloat,S<:OrthRefinement} = cube_auxF_to_nodal(re, one(T), one(T))
+cube_nodal_to_auxF(re::S, ::Type{T}) where {T<:AbstractFloat,S<:OrthRefinement} = cube_nodal_to_auxF(re, one(T), one(T))
+cube_auxF_to_normedF(re::S, ::Type{T}) where {T<:AbstractFloat,S<:OrthRefinement} = cube_auxF_to_normedF(re, one(T), one(T))
+cube_auxF_to_auxQ(re::S, ::Type{T}) where {T<:AbstractFloat,S<:OrthRefinement} = cube_auxF_to_auxQ(re, one(T), one(T))
+cube_auxQ_to_auxF(re::S, ::Type{T}) where {T<:AbstractFloat,S<:OrthRefinement} = cube_auxQ_to_auxF(re, one(T), one(T))
+cube_normedF_refine_dec(re::S, ::Type{C}, ℓ::Int, L::Int) where {d,S<:OrthRefinement{d},T<:AbstractFloat,C<:FloatRC{T}} = cube_normedF_refine_dec(re, C, one(T), one(T), ℓ, L)
+
+
+function cube_basisfactors_dn(::Val{d}, L::Int) where {d}
+	checkdim(d)
+	if L < 1
+		throw(ArgumentError("L should be positive"))
+	end
+	I = [1 0; 0 1]; J = [0 1; 0 0]; O = [0 0; 0 0]
+	UU = [J O; J' I]; UU = factor(UU, 2, 2)
+	VV = [0 1]; VV = factor(VV, 1, 1)
+	U = MatrixDec{Int}()
+	decpush!(U, VV)
+	for ℓ ∈ 1:L
+		decpush!(U, UU)
+	end
+	QQ = [1 0; 0 1]
+	Q = [ QQ for ℓ ∈ 0:L ]
+	P = [0,1]
+	ntuple(k -> U, Val(d)),ntuple(k -> Q, Val(d)),ntuple(k -> P, Val(d))
+end
+
+function cube_basisfactors_nn(::Val{d}, L::Int) where {d}
+	checkdim(d)
+	if L < 1
+		throw(ArgumentError("L should be positive"))
+	end
+	I = [1 0; 0 1]; J = [0 1; 0 0]; O = [0 0; 0 0]
+	UU = [I O O; O I J; O O J']; UU = factor(UU, 2, 2)
+	VV = [1 0 1 0 0 1]; VV = factor(VV, 1, 2)
+	U = MatrixDec{Int}()
+	decpush!(U, VV)
+	for ℓ ∈ 1:L
+		decpush!(U, UU)
+	end
+	QQ = [1 0; 0 0; 0 1]
+	Q = [ QQ for ℓ ∈ 0:L ]
+	P = [1,0]
+	ntuple(k -> U, Val(d)),ntuple(k -> Q, Val(d)),ntuple(k -> P, Val(d))
+end
+
+function cube_basisfactors_dd(::Val{d}, L::Int) where {d}
+	checkdim(d)
+	if L < 1
+		throw(ArgumentError("L should be positive"))
+	end
+	I = [1 0; 0 1]; J = [0 1; 0 0]; O = [0 0; 0 0]; I1 = [1 0; 0 0]; I2 = [0 0; 0 1];
+	UU = [J O O; J' I O; J' I1 I2]; UU = factor(UU, 2, 2)
+	VV = [0 0 1]; VV = factor(VV, 1, 1)
+	U = MatrixDec{Int}()
+	decpush!(U, VV)
+	for ℓ ∈ 1:L
+		decpush!(U, UU)
+	end
+	QQ = [1 0; 0 1; 0 0]
+	Q = [ QQ for ℓ ∈ 0:L ]
+	P = [0,1]
+	ntuple(k -> U, Val(d)),ntuple(k -> Q, Val(d)),ntuple(k -> P, Val(d))
+end
+
+function cube_mixed_basisfactors(re::S, κ₀::T, κ₁::T, U::NTuple{d,MatrixDec{Int}}, Q::NTuple{d,Vector{Matrix{Int}}}) where {d,S<:OrthRefinement{d},T<:AbstractFloat}
+	L = declength(U[1])-1
+	if L < 0
+		throw(ArgumentError("each U[k] should be a decomposition of length L+1, where L is the (nonegative) number of levels"))
+	end
+	for k ∈ 1:d
+		if declength(U[k]) ≠ L+1 || declength(Q[k]) ≠ L+1
+			throw(ArgumentError("all elements of U and Q should be decompositions of the same length"))
+		end
+	end
+	m = zeros(Int, d, L+1)
+	r = zeros(Int, d, L+2)
+	for k ∈ 1:d
+		sz = decsize(U[k])
+		m[k:k,:] = sz[1:1,:]
+		r[k:k,:] = decrank(U[k])
+	end
+	if any(m[:,2:L+1] .≠ 2)
+		throw(ArgumentError("each mode dimension, except the first, of each element of U should be equal to 2"))
+	end
+	for k ∈ 1:d, ℓ ∈ 0:L
+		if size(Q[k][ℓ+1], 1) ≠ r[k,ℓ+2]
+			throw(ArgumentError("U and Q have inconsitent ranks"))
+		end
+	end
+	Umix = ntuple(k -> MatrixDec{T}(undef, L+1), Val(d))
+	Qmix = ntuple(k -> Vector{Matrix{T}}(undef, L+1), Val(d))
+	Cmix = Vector{Matrix{T}}(undef, L+1)
+	Wmix = VectorDec{T}(undef, L+1)
+
+	ρ = √(one(T)*2)
+	F = VectorFactor{T}(cube_auxQ_refinement_factor(re, Val(2)))
+	G = cube_nodal_to_auxQ(re)
+	local YY,HH
+	for ℓ ∈ L+1:-1:1
+		μ₀ = κ₀*(1/ρ^d)^(ℓ-1)
+		μ₁ = κ₁*(2/ρ^d)^(ℓ-1)
+		X,Y = cube_auxF_to_orth_to_auxF(re, μ₀, μ₁)	# X is orth → auxF, Y is auxF → orth
+		Z = cube_auxF_to_auxQ(re, μ₀, μ₁)
+		H = cube_auxQ_to_auxF(re, μ₀, μ₁)
+		Cmix[ℓ] = Matrix{T}(transpose(Y*H*G))
+		Cmix[ℓ] .*= ρ^(d*ℓ) / (2*one(T))^(ℓ-1)
+		if ℓ == L+1
+			V = cube_normedQ_to_normedF(re, μ₀, μ₁)*cube_auxQ_to_normedQ(re)*(Z*X) # Z*X is orth → auxQ
+			Wmix[L+1] = reshape(permutedims(V), 2^d, :, 1)
+		else
+			Wmix[ℓ] = factorcontract(permutedims(Z*X), factorcontract(F, permutedims(YY*HH))) # Z*X is orth → auxQ, YY*HH is auxQ → orth
+		end
+		for k ∈ 1:d
+			Qmix[k][ℓ] = Matrix{T}(Q[k][ℓ])
+			Qmix[k][ℓ] ./= ρ
+			Umix[k][ℓ] = MatrixFactor{T}(U[k][ℓ])
+		end
+		YY,HH = Y,H
+	end
+	Umix,Qmix,Cmix,Wmix
+end
+
+function cube_nodal_to_normedF!(re::S, κ₀::T, κ₁::T, U::VectorDec{C}) where {d,S<:Refinement{d},T<:AbstractFloat,C<:FloatRC{T}}
+	L = declength(U)-2
+	if L < 0
+		throw(ArgumentError("the input decompositions should have at least two factors"))
+	end
+	n,r = decsize(U),decrank(U)
+	if r[1] ≠ 1 || r[L+3] ≠ 1
+		throw(ArgumentError("both terminal ranks of U should be unit"))
+	end
+	if n[L+2] ≠ 2^d
+		throw(ArgumentError("the last factor of U should have mode size 2^d, where d is the dimension parameter"))
+	end
+	if any(n[2:L+1] .≠ 2^d)
+		throw(ArgumentError("all factors of U except the first should have mode size 2^d, where d is the dimension parameter"))
+	end
+	ρ = √(one(T)*2^d)
+	μ₀ = κ₀*(1/ρ)^L
+	μ₁ = κ₁*(2/ρ)^L
+	# W = cube_nodal_to_normedF(re, μ₀, μ₁)
+	W = Matrix{C}(cube_nodal_to_normedF(re, μ₀, μ₁)) # TODO the conversion should not be necessary, but a segfault may occur without it in subsequent computations…
+	W = factor(W, size(W)...)
+	U[L+2] = factormp(W, 2, U[L+2], 1)
+	U
+end
+
+
+
+
+
+
+
+
+include("FEMQ1.jl")
+
+
+
+
+
+
+
+
 end
