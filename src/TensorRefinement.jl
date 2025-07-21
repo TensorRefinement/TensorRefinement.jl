@@ -8,6 +8,9 @@ include("Auxiliary.jl")
 include("TensorTrain.jl")
 @reexport using .TensorTrain
 
+include("SwitchingEdgeTensorTrain.jl")
+@reexport using .SwitchingEdgeTensorTrain
+
 include("Exponential.jl")
 @reexport using .Exponential
 
