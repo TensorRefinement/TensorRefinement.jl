@@ -911,7 +911,7 @@ end
 decqr!(W::Dec{T,N}; pivot::Bool=false, path::String="", returnRfactors::Bool=false) where {T<:FloatRC,N} = decqr!(W, :; pivot=pivot, path=path, returnRfactors=returnRfactors)
 
 
-function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
+function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String="", soft::Float2=zero(S), hard::Float2=zero(S), aTol::Float2=zero(S), aTolDistr::Float2=zero(S), rTol::Float2=zero(S), rTolDistr::Float2=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N}
 	# assumes that the decomposition is orthogonal
 	L = declength(W); decrank(W)
 	if L == 0
@@ -1057,6 +1057,6 @@ function decsvd!(W::Dec{T,N}, Λ::Indices, n::Union{Colon,DecSize}; path::String
 	return W,ε,δ,μ,ρ,σ
 end
 
-decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}, Λ::Indices; path::String="", soft::Float2=zero(S), hard::Float2=zero(S), aTol::Float2=zero(S), aTolDistr::Float2=zero(S), rTol::Float2=zero(S), rTolDistr::Float2=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, Λ, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
 
-decsvd!(W::Dec{T,N}; path::String="", soft::Float2{AbstractFloat}=zero(S), hard::Float2{AbstractFloat}=zero(S), aTol::Float2{AbstractFloat}=zero(S), aTolDistr::Float2{AbstractFloat}=zero(S), rTol::Float2{AbstractFloat}=zero(S), rTolDistr::Float2{AbstractFloat}=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
+decsvd!(W::Dec{T,N}; path::String="", soft::Float2=zero(S), hard::Float2=zero(S), aTol::Float2=zero(S), aTolDistr::Float2=zero(S), rTol::Float2=zero(S), rTolDistr::Float2=zero(S), rank::Int2=0, major::String="last") where {S<:AbstractFloat,T<:FloatRC{S},N} = decsvd!(W, :, :; path=path, soft=soft, hard=hard, aTol=aTol, aTolDistr=aTolDistr, rTol=rTol, rTolDistr=rTolDistr, rank=rank, major=major)
