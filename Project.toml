@@ -1,7 +1,7 @@
 name = "TensorRefinement"
 uuid = "a3b9d4e2-d0bd-4e25-82d9-b4a73f42a39d"
 authors = ["TensorRefinement contributors <trt.mathematik@univie.ac.at>"]
-version = "0.3.5"
+version = "0.3.6"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
