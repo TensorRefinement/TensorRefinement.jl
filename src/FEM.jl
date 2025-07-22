@@ -874,14 +874,14 @@ function cube_basisfactors_nn(::Val{d}, L::Int) where {d}
 		throw(ArgumentError("L should be positive"))
 	end
 	I = [1 0; 0 1]; J = [0 1; 0 0]; O = [0 0; 0 0]
-	UU = [I O O; O I J; O O J']; UU = factor(UU, 2, 2)
-	VV = [1 0 1 0 0 1]; VV = factor(VV, 1, 2)
+	UU = [I J; O J']; UU = factor(UU, 2, 2)
+	VV = [1 0 0 1]; VV = factor(VV, 1, 2)
 	U = MatrixDec{Int}()
 	decpush!(U, VV)
 	for ℓ ∈ 1:L
 		decpush!(U, UU)
 	end
-	QQ = [1 0; 0 0; 0 1]
+	QQ = [1 0; 0 1]
 	Q = [ QQ for ℓ ∈ 0:L ]
 	P = [1,0]
 	ntuple(k -> U, Val(d)),ntuple(k -> Q, Val(d)),ntuple(k -> P, Val(d))
